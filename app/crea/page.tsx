@@ -1,8 +1,14 @@
+import type { Metadata } from "next"
 import { MemorialStepper } from "@/components/memorial/stepper"
 import { CloudOverlay } from "@/components/paradise/cloud-overlay"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Crea un memoriale",
+  description: "Racconta la storia del tuo compagno e dagli un posto speciale nel paradiso di Pethernity.",
+}
 
 export default function CreaPage() {
   return (
