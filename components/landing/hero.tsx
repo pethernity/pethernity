@@ -1,38 +1,47 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { CloudOverlay } from "@/components/paradise/cloud-overlay"
+import { DecorativeClouds } from "@/components/paradise/cloud-overlay"
 import { Rainbow } from "@/components/paradise/rainbow"
-import { Heart } from "lucide-react"
+import { Heart, ChevronDown } from "lucide-react"
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[85vh] flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-celeste-paradiso/30 via-background to-rosa-aurora/20 px-6 text-center">
-      <CloudOverlay />
+    <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#A8DEF0] via-background to-[#F5EDE0] px-6 text-center">
+      <DecorativeClouds />
       <Rainbow className="pointer-events-none absolute -right-20 -top-10 h-[400px] w-[600px] rotate-12 opacity-40" />
+      <Rainbow className="pointer-events-none absolute -left-20 bottom-10 h-[300px] w-[500px] -rotate-12 opacity-25" />
 
       <div className="relative z-10 mx-auto max-w-2xl">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-rosa-aurora/20 px-4 py-2 text-sm text-primary">
+        <div className="mb-6 inline-flex animate-fade-up items-center gap-2 rounded-full border border-rosa-aurora/30 bg-white/60 px-4 py-2 text-sm font-medium text-primary shadow-sm backdrop-blur-sm">
           <Heart className="size-4 fill-current" />
           <span>Un luogo speciale per chi ci ha amato</span>
         </div>
 
-        <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-foreground md:text-6xl lg:text-7xl">
+        <h1 className="animate-fade-up font-display text-5xl font-bold leading-[1.1] tracking-tight text-foreground [animation-delay:100ms] md:text-6xl lg:text-7xl">
           Un paradiso per chi ci ha amato
         </h1>
 
-        <p className="mt-6 text-lg leading-relaxed text-muted-foreground md:text-xl">
+        <p className="mx-auto mt-6 max-w-xl animate-fade-up text-lg leading-relaxed text-muted-foreground [animation-delay:200ms] md:text-xl">
           Crea un memoriale unico per il tuo compagno a quattro zampe.
           Un angolo di paradiso dove il suo ricordo vivra per sempre,
           tra nuvole soffici e arcobaleni.
         </p>
 
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Button asChild size="lg" className="text-lg px-10 h-14">
+        <div className="mt-10 flex animate-fade-up flex-col items-center gap-4 [animation-delay:300ms] sm:flex-row sm:justify-center">
+          <Button asChild size="lg" className="text-lg px-10 h-14 shadow-lg">
             <Link href="/crea">Crea un memoriale</Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="text-lg px-10 h-14">
+          <Button asChild variant="outline" size="lg" className="text-lg px-10 h-14 bg-white/50 backdrop-blur-sm">
             <Link href="/paradiso">Esplora il paradiso</Link>
           </Button>
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-float">
+        <div className="flex flex-col items-center gap-1 text-muted-foreground/60">
+          <span className="text-xs font-medium">Scopri di piu</span>
+          <ChevronDown className="size-5" />
         </div>
       </div>
     </section>

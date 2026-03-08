@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { StepCompanion } from "./step-companion"
 import { StepPhoto } from "./step-photo"
 import { StepMemory } from "./step-memory"
-import { StepPosition } from "./step-position"
-import { saveMemorial, createMemorialId, type Memorial } from "@/lib/memorials"
+import { saveMemorial, createMemorialId, getOccupiedCloudIds, type Memorial } from "@/lib/memorials"
+import { getNextAvailableCloudId } from "@/lib/cloud-spots"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react"
 
@@ -18,14 +18,12 @@ export interface StepperData {
   phrase: string
   birthDate: string
   deathDate: string
-  position: { x: number; y: number } | null
 }
 
 const STEP_TITLES = [
   "Il tuo compagno",
   "Una foto",
   "Un ricordo",
-  "Il suo posto in paradiso",
 ]
 
 export function MemorialStepper() {
@@ -38,11 +36,10 @@ export function MemorialStepper() {
     phrase: "",
     birthDate: "",
     deathDate: "",
-    position: null,
   })
   const [isComplete, setIsComplete] = useState(false)
 
-  const progress = ((step + 1) / 4) * 100
+  const progress = ((step + 1) / 3) * 100
 
   function updateData(partial: Partial<StepperData>) {
     setData((prev) => ({ ...prev, ...partial }))
@@ -53,13 +50,13 @@ export function MemorialStepper() {
       case 0: return data.petName.trim().length > 0
       case 1: return data.photo.length > 0
       case 2: return data.phrase.trim().length > 0
-      case 3: return data.position !== null
       default: return false
     }
   }
 
   function handleCreate() {
-    if (!data.position) return
+    const cloudId = getNextAvailableCloudId(getOccupiedCloudIds())
+    if (!cloudId) return
     const memorial: Memorial = {
       id: createMemorialId(),
       petName: data.petName.trim(),
@@ -68,7 +65,7 @@ export function MemorialStepper() {
       phrase: data.phrase.trim(),
       birthDate: data.birthDate || undefined,
       deathDate: data.deathDate || undefined,
-      position: data.position,
+      cloudId,
       createdAt: new Date().toISOString(),
     }
     saveMemorial(memorial)
@@ -98,7 +95,7 @@ export function MemorialStepper() {
     <div className="mx-auto max-w-xl px-6 py-8">
       <div className="mb-2 text-center">
         <span className="text-sm font-medium text-muted-foreground">
-          Passo {step + 1} di 4
+          Passo {step + 1} di 3
         </span>
       </div>
       <Progress value={progress} className="mb-8 h-2" />
@@ -111,7 +108,6 @@ export function MemorialStepper() {
         {step === 0 && <StepCompanion data={data} onChange={updateData} />}
         {step === 1 && <StepPhoto data={data} onChange={updateData} />}
         {step === 2 && <StepMemory data={data} onChange={updateData} />}
-        {step === 3 && <StepPosition data={data} onChange={updateData} />}
       </div>
 
       <div className="mt-8 flex justify-between gap-4">
@@ -126,7 +122,7 @@ export function MemorialStepper() {
           Indietro
         </Button>
 
-        {step < 3 ? (
+        {step < 2 ? (
           <Button
             size="lg"
             onClick={() => setStep((s) => s + 1)}

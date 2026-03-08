@@ -19,7 +19,7 @@ export function MemorialMarker({
       type="button"
       onClick={onClick}
       className={cn(
-        "group flex flex-col items-center transition-transform hover:scale-105",
+        "group flex flex-col items-center transition-transform hover:scale-105 animate-float drop-shadow-md",
         onClick && "cursor-pointer",
         className
       )}
@@ -55,8 +55,6 @@ export function MemorialMarker({
         )}
       </div>
 
-      {/* Ground stake */}
-      <div className={cn("bg-gradient-to-b from-oro-antico/60 to-oro-antico/20 rounded-full", isSmall ? "h-3 w-1" : "h-4 w-1.5")} />
     </button>
   )
 }

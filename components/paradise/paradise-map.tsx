@@ -1,21 +1,33 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { ZoomIn, ZoomOut, Plus, Home } from "lucide-react"
+import { ZoomIn, ZoomOut, Home, Heart, Star, Calendar, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { MemorialMarker } from "@/components/memorial/memorial-marker"
 import { getMemorials, type Memorial } from "@/lib/memorials"
-import { CloudOverlay } from "./cloud-overlay"
+import { getInteractionCounts, type InteractionCounts } from "@/lib/interactions"
+import { MapCloudLayer } from "./cloud-overlay"
 import { Rainbow } from "./rainbow"
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog"
 import Link from "next/link"
+
+function InteractionBadges({ memorialId }: { memorialId: string }) {
+  const [counts, setCounts] = useState<InteractionCounts | null>(null)
+  useEffect(() => { setCounts(getInteractionCounts(memorialId)) }, [memorialId])
+
+  if (!counts || (counts.likes + counts.candles + counts.comments === 0)) return null
+
+  return (
+    <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+      {counts.likes > 0 && <span>❤️ {counts.likes}</span>}
+      {counts.candles > 0 && <span>🕯️ {counts.candles}</span>}
+      {counts.comments > 0 && <span>💬 {counts.comments}</span>}
+    </div>
+  )
+}
 
 const MAP_WIDTH = 4000
 const MAP_HEIGHT = 2400
@@ -23,13 +35,38 @@ const MAP_HEIGHT = 2400
 export function ParadiseMap() {
   const [memorials, setMemorials] = useState<Memorial[]>([])
   const [selected, setSelected] = useState<Memorial | null>(null)
+  const [query, setQuery] = useState("")
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMemorials(getMemorials())
   }, [])
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
+  const filtered = query.trim()
+    ? memorials.filter(m =>
+        m.petName.toLowerCase().includes(query.toLowerCase()) ||
+        m.phrase.toLowerCase().includes(query.toLowerCase())
+      )
+    : memorials
+
   return (
-    <div className="relative h-svh w-full overflow-hidden">
+    <div
+      className="relative h-svh w-full overflow-hidden"
+      style={{
+        background: "linear-gradient(180deg, #8EC5E2 0%, #B8D4E3 30%, #D8F0FC 60%, #F0E8DE 85%, #E8D0D8 100%)",
+      }}
+    >
       <TransformWrapper
         initialScale={0.8}
         minScale={0.3}
@@ -47,6 +84,56 @@ export function ParadiseMap() {
                   Home
                 </Link>
               </Button>
+
+              {/* Search bar */}
+              <div ref={searchRef} className="relative">
+                <div className="flex items-center gap-2 rounded-xl bg-white/70 backdrop-blur-sm shadow-md pl-3 pr-1 border border-rosa-aurora/20">
+                  <Search className="size-4 shrink-0 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Cerca un memoriale..."
+                    value={query}
+                    onChange={(e) => { setQuery(e.target.value); setSearchOpen(true) }}
+                    onFocus={() => setSearchOpen(true)}
+                    className="h-9 w-48 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                  />
+                  {query && (
+                    <button
+                      onClick={() => { setQuery(""); setSearchOpen(false) }}
+                      className="flex size-7 items-center justify-center rounded-lg hover:bg-rosa-aurora/10 transition-colors"
+                    >
+                      <X className="size-3.5 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+
+                {searchOpen && query.trim() && (
+                  <div className="absolute top-full left-0 mt-2 w-72 rounded-xl bg-white/90 backdrop-blur-md shadow-xl border border-rosa-aurora/20 overflow-hidden">
+                    {filtered.length === 0 ? (
+                      <p className="p-4 text-sm text-muted-foreground text-center">Nessun memoriale trovato</p>
+                    ) : (
+                      <ul className="max-h-64 overflow-y-auto py-1">
+                        {filtered.map(m => (
+                          <li key={m.id}>
+                            <button
+                              onClick={() => { setSelected(m); setSearchOpen(false) }}
+                              className="flex items-center gap-3 w-full px-3 py-2 hover:bg-rosa-aurora/10 transition-colors"
+                            >
+                              <img src={m.photo} className="size-9 rounded-full object-cover ring-2 ring-white" alt={m.petName} />
+                              <div className="text-left">
+                                <p className="text-sm font-medium">{m.petName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {m.petType === "dog" ? "Cane" : m.petType === "cat" ? "Gatto" : "Animale"}
+                                </p>
+                              </div>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
@@ -61,61 +148,22 @@ export function ParadiseMap() {
               </Button>
             </div>
 
-            {/* Create CTA */}
-            <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2">
-              <Button asChild size="lg" className="h-14 px-8 text-lg shadow-xl">
-                <Link href="/crea">
-                  <Plus className="size-5" />
-                  Crea un memoriale
-                </Link>
-              </Button>
-            </div>
 
             <TransformComponent
               wrapperStyle={{ width: "100%", height: "100%" }}
               contentStyle={{ width: MAP_WIDTH, height: MAP_HEIGHT }}
             >
-              <div
-                className="relative h-full w-full"
-                style={{
-                  background: `
-                    linear-gradient(180deg,
-                      #87CEEB 0%,
-                      #a8d4e8 15%,
-                      #B8D4E3 30%,
-                      #c5e8c5 45%,
-                      #a8d5a0 55%,
-                      #90c990 70%,
-                      #7abd7a 85%,
-                      #6ab36a 100%
-                    )`,
-                }}
-              >
-                {/* Clouds */}
-                <CloudOverlay />
-
-                {/* Rainbow */}
+              <div className="relative h-full w-full">
+                {/* Rainbows */}
                 <Rainbow className="absolute left-[10%] top-[5%] h-[500px] w-[800px]" />
                 <Rainbow className="absolute right-[5%] top-[10%] h-[400px] w-[600px] -scale-x-100" />
 
-                {/* Decorative elements */}
-                <div className="absolute top-[25%] left-[15%] h-20 w-60 rounded-full bg-white/25 blur-md" />
-                <div className="absolute top-[20%] left-[50%] h-16 w-48 rounded-full bg-white/20 blur-md" />
-                <div className="absolute top-[30%] right-[20%] h-24 w-72 rounded-full bg-white/30 blur-md" />
-
-                {/* Memorial markers */}
-                {memorials.map((m) => (
-                  <div
-                    key={m.id}
-                    className="absolute -translate-x-1/2 -translate-y-full"
-                    style={{ left: m.position.x, top: m.position.y }}
-                  >
-                    <MemorialMarker
-                      memorial={m}
-                      onClick={() => setSelected(m)}
-                    />
-                  </div>
-                ))}
+                {/* Clouds with memorial markers */}
+                <MapCloudLayer
+                  memorials={filtered}
+                  mode="display"
+                  onMarkerClick={setSelected}
+                />
 
                 {/* Empty state */}
                 {memorials.length === 0 && (
@@ -124,7 +172,7 @@ export function ParadiseMap() {
                       Il paradiso attende il primo ricordo
                     </p>
                     <p className="mt-2 text-lg text-white/60">
-                      Crea un memoriale per il tuo compagno
+                      Scegli una nuvola per il tuo compagno
                     </p>
                   </div>
                 )}
@@ -136,42 +184,79 @@ export function ParadiseMap() {
 
       {/* Memorial detail dialog */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-[420px] p-0 border-none shadow-2xl ring-1 ring-rosa-aurora/20 animate-soft-glow bg-gradient-to-b from-[#F5EDE0] via-white to-[#E8F6FE] overflow-hidden">
           {selected && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-display text-2xl">{selected.petName}</DialogTitle>
-                <DialogDescription>
-                  {selected.petType === "dog" ? "Cane" : selected.petType === "cat" ? "Gatto" : "Animale"}
-                  {selected.deathDate && ` — ci ha lasciato il ${new Date(selected.deathDate).toLocaleDateString("it-IT")}`}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-col items-center gap-4">
-                <img
-                  src={selected.photo}
-                  alt={selected.petName}
-                  className="h-48 w-48 rounded-2xl object-cover shadow-lg"
-                />
-                <blockquote className="text-center text-base italic text-muted-foreground">
+            <div className="flex flex-col items-center">
+              {/* Rainbow bar */}
+              <div
+                className="h-2 w-full"
+                style={{
+                  background: "linear-gradient(90deg, #C4A8D4, #F5C7A0, #F2DC8A, #A8D5B0, #8EC5E2)",
+                }}
+              />
+
+              <div className="flex flex-col items-center gap-5 px-6 pt-6 pb-6">
+                {/* Photo with glow */}
+                <div className="relative">
+                  <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-rosa-aurora/20 via-celeste-paradiso/20 to-oro-antico/20 blur-xl" />
+                  <img
+                    src={selected.photo}
+                    alt={selected.petName}
+                    className="relative h-52 w-52 rounded-2xl object-cover ring-4 ring-white shadow-lg"
+                  />
+                </div>
+
+                {/* Name & type */}
+                <div className="text-center">
+                  <h2 className="font-display text-3xl font-bold text-foreground">{selected.petName}</h2>
+                  <p className="mt-1 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+                    <Heart className="size-3.5 fill-rosa-aurora text-rosa-aurora" />
+                    {selected.petType === "dog" ? "Cane" : selected.petType === "cat" ? "Gatto" : "Animale"}
+                  </p>
+                </div>
+
+                {/* Decorative separator */}
+                <div className="flex w-full items-center gap-3">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent to-rosa-aurora/30" />
+                  <Star className="size-4 text-oro-antico" />
+                  <div className="h-px flex-1 bg-gradient-to-l from-transparent to-rosa-aurora/30" />
+                </div>
+
+                {/* Quote */}
+                <blockquote className="w-full rounded-xl bg-crema-divina/50 p-4 text-center text-base italic leading-relaxed text-muted-foreground shadow-inner backdrop-blur-sm">
                   &ldquo;{selected.phrase}&rdquo;
                 </blockquote>
+
+                {/* Dates */}
                 {(selected.birthDate || selected.deathDate) && (
-                  <div className="flex gap-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
                     {selected.birthDate && (
-                      <span>Nato il {new Date(selected.birthDate).toLocaleDateString("it-IT")}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-3" />
+                        Nato il {new Date(selected.birthDate).toLocaleDateString("it-IT")}
+                      </span>
                     )}
                     {selected.deathDate && (
-                      <span>Scomparso il {new Date(selected.deathDate).toLocaleDateString("it-IT")}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="size-3" />
+                        Scomparso il {new Date(selected.deathDate).toLocaleDateString("it-IT")}
+                      </span>
                     )}
                   </div>
                 )}
-              </div>
-              <div className="flex justify-center">
-                <Button asChild variant="outline">
-                  <Link href={`/memoriale/${selected.id}`}>Vedi memoriale completo</Link>
+
+                {/* Interaction counts */}
+                <InteractionBadges memorialId={selected.id} />
+
+                {/* CTA */}
+                <Button asChild className="shadow-md">
+                  <Link href={`/memoriale/${selected.id}`}>
+                    <Heart className="size-4" />
+                    Vedi memoriale completo
+                  </Link>
                 </Button>
               </div>
-            </>
+            </div>
           )}
         </DialogContent>
       </Dialog>

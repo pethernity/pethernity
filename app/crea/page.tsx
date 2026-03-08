@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { MemorialStepper } from "@/components/memorial/stepper"
-import { CloudOverlay } from "@/components/paradise/cloud-overlay"
+import { DecorativeClouds } from "@/components/paradise/cloud-overlay"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function CreaPage() {
   return (
-    <div className="relative min-h-svh bg-gradient-to-b from-celeste-paradiso/10 via-background to-rosa-aurora/10">
-      <CloudOverlay />
+    <div className="relative min-h-svh bg-gradient-to-b from-[#A8DEF0] via-background to-[#E8F6FE]">
+      <DecorativeClouds />
       <div className="relative z-10">
         <div className="px-6 pt-6">
           <Button asChild variant="ghost" size="sm">

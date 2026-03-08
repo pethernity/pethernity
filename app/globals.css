@@ -6,11 +6,11 @@
 
 :root {
     /* Paradiso Etereo — Light Theme */
-    --background: #FEFAF6;         /* Bianco Nuvola */
+    --background: #D8F0FC;         /* Azzurro Cielo */
     --foreground: #2B1F1F;         /* Nero Velluto */
     --card: #F5EDE0;               /* Crema Divina */
     --card-foreground: #2B1F1F;    /* Nero Velluto */
-    --popover: #FEFAF6;            /* Bianco Nuvola */
+    --popover: #E8F6FE;            /* Azzurro Chiaro */
     --popover-foreground: #2B1F1F; /* Nero Velluto */
     --primary: #7A1A2E;            /* Rubino Profondo */
     --primary-foreground: #F5EDE0; /* Crema Divina */
@@ -19,7 +19,7 @@
     --muted: #E8F0F6;              /* Celeste Paradiso (light) */
     --muted-foreground: #A89F97;   /* Grigio Seta */
     --accent: #D4736A;             /* Corallo Caldo */
-    --accent-foreground: #FEFAF6;  /* Bianco Nuvola */
+    --accent-foreground: #E8F6FE;  /* Azzurro Chiaro */
     --destructive: #D4736A;        /* Corallo Caldo */
     --border: oklch(0.78 0.06 350 / 25%);  /* Rosa Aurora ~25% */
     --input: oklch(0.78 0.06 350 / 30%);   /* Rosa Aurora ~30% */
@@ -153,21 +153,38 @@
     }
 }
 
-@keyframes cloud-drift-slow {
-  0% { transform: translateX(-10%); }
-  100% { transform: translateX(10%); }
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
-@keyframes cloud-drift-medium {
-  0% { transform: translateX(5%); }
-  100% { transform: translateX(-15%); }
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
-@keyframes cloud-drift-fast {
-  0% { transform: translateX(-5%); }
-  100% { transform: translateX(15%); }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes soft-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(232,160,180,0.15); }
+  50% { box-shadow: 0 0 40px rgba(232,160,180,0.3); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flicker {
+  0%, 100% { transform: scaleY(1) rotate(0deg); opacity: 1; }
+  25% { transform: scaleY(1.1) rotate(-1deg); opacity: 0.9; }
+  50% { transform: scaleY(0.95) rotate(1deg); opacity: 1; }
+  75% { transform: scaleY(1.05) rotate(-0.5deg); opacity: 0.95; }
 }
 
 @theme inline {
-  --animate-cloud-drift-slow: cloud-drift-slow 30s ease-in-out infinite alternate;
-  --animate-cloud-drift-medium: cloud-drift-medium 22s ease-in-out infinite alternate;
-  --animate-cloud-drift-fast: cloud-drift-fast 16s ease-in-out infinite alternate;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s linear infinite;
+  --animate-soft-glow: soft-glow 3s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+  --animate-flicker: flicker 2s ease-in-out infinite;
 }
