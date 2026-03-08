@@ -5,25 +5,26 @@ import { ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { StepperData } from "./stepper"
 
-export function StepPhoto({
-  data,
-  onChange,
-}: {
+interface StepPhotoProps {
   data: StepperData
   onChange: (d: Partial<StepperData>) => void
-}) {
+  onFileSelect: (file: File | null) => void
+}
+
+export function StepPhoto({ data, onChange, onFileSelect }: StepPhotoProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(
     (file: File) => {
       if (!file.type.startsWith("image/")) return
+      onFileSelect(file)
       const reader = new FileReader()
       reader.onload = () => {
         onChange({ photo: reader.result as string })
       }
       reader.readAsDataURL(file)
     },
-    [onChange]
+    [onChange, onFileSelect]
   )
 
   function handleDrop(e: React.DragEvent) {
@@ -35,6 +36,11 @@ export function StepPhoto({
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) handleFile(file)
+  }
+
+  function handleRemove() {
+    onChange({ photo: "" })
+    onFileSelect(null)
   }
 
   if (data.photo) {
@@ -50,7 +56,7 @@ export function StepPhoto({
             variant="destructive"
             size="icon-sm"
             className="absolute -right-2 -top-2 rounded-full"
-            onClick={() => onChange({ photo: "" })}
+            onClick={handleRemove}
           >
             <X className="size-4" />
           </Button>

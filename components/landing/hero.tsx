@@ -2,11 +2,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { DecorativeClouds } from "@/components/paradise/cloud-overlay"
 import { Rainbow } from "@/components/paradise/rainbow"
+import { UserMenu } from "@/components/auth/user-menu"
 import { Heart, ChevronDown } from "lucide-react"
 
 export function Hero() {
   return (
     <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#A8DEF0] via-background to-[#F5EDE0] px-6 text-center">
+      <div className="absolute right-4 top-4 z-20">
+        <UserMenu />
+      </div>
       <DecorativeClouds />
       <Rainbow className="pointer-events-none absolute -right-20 -top-10 h-[400px] w-[600px] rotate-12 opacity-40" />
       <Rainbow className="pointer-events-none absolute -left-20 bottom-10 h-[300px] w-[500px] -rotate-12 opacity-25" />

@@ -26,7 +26,7 @@ export function StepPosition({
   const [occupied, setOccupied] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    setOccupied(getOccupiedCloudIds())
+    getOccupiedCloudIds().then(setOccupied)
   }, [])
 
   function handleCloudClick(spot: CloudSpot) {

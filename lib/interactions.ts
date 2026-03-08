@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/client"
 import { formatDistanceToNow } from "date-fns"
 import { it } from "date-fns/locale"
 
@@ -5,19 +6,20 @@ import { it } from "date-fns/locale"
 
 export interface LikeData {
   count: number
-  likedByThisBrowser: boolean
+  likedByCurrentUser: boolean
 }
 
 export interface CandleData {
   count: number
-  litByThisBrowser: boolean
+  litByCurrentUser: boolean
 }
 
 export interface Comment {
   id: string
-  authorName: string
+  user_id: string
+  author_name: string
   text: string
-  createdAt: string
+  created_at: string
 }
 
 export interface InteractionCounts {
@@ -26,125 +28,185 @@ export interface InteractionCounts {
   comments: number
 }
 
-// ── Storage helpers (SSR-safe) ─────────────────────────────────────
-
-function readStore<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function writeStore<T>(key: string, data: T): void {
-  if (typeof window === "undefined") return
-  localStorage.setItem(key, JSON.stringify(data))
-}
-
 // ── Likes ──────────────────────────────────────────────────────────
 
-const LIKES_KEY = "pethernity-likes"
+export async function getLikes(
+  memorialId: string,
+  userId: string | null
+): Promise<LikeData> {
+  const supabase = createClient()
 
-type LikesStore = Record<string, { count: number; liked: boolean }>
+  const { count } = await supabase
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("memorial_id", memorialId)
 
-export function getLikes(memorialId: string): LikeData {
-  const store = readStore<LikesStore>(LIKES_KEY, {})
-  const entry = store[memorialId]
-  return entry
-    ? { count: entry.count, likedByThisBrowser: entry.liked }
-    : { count: 0, likedByThisBrowser: false }
-}
-
-export function toggleLike(memorialId: string): LikeData {
-  const store = readStore<LikesStore>(LIKES_KEY, {})
-  const entry = store[memorialId] ?? { count: 0, liked: false }
-
-  if (entry.liked) {
-    entry.count = Math.max(0, entry.count - 1)
-    entry.liked = false
-  } else {
-    entry.count += 1
-    entry.liked = true
+  let likedByCurrentUser = false
+  if (userId) {
+    const { data } = await supabase
+      .from("likes")
+      .select("id")
+      .eq("memorial_id", memorialId)
+      .eq("user_id", userId)
+      .maybeSingle()
+    likedByCurrentUser = !!data
   }
 
-  store[memorialId] = entry
-  writeStore(LIKES_KEY, store)
-  return { count: entry.count, likedByThisBrowser: entry.liked }
+  return { count: count ?? 0, likedByCurrentUser }
+}
+
+export async function toggleLike(
+  memorialId: string,
+  userId: string
+): Promise<LikeData> {
+  const supabase = createClient()
+
+  const { data: existing } = await supabase
+    .from("likes")
+    .select("id")
+    .eq("memorial_id", memorialId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase.from("likes").delete().eq("id", existing.id)
+  } else {
+    await supabase
+      .from("likes")
+      .insert({ memorial_id: memorialId, user_id: userId })
+  }
+
+  return getLikes(memorialId, userId)
 }
 
 // ── Candles ─────────────────────────────────────────────────────────
 
-const CANDLES_KEY = "pethernity-candles"
+export async function getCandle(
+  memorialId: string,
+  userId: string | null
+): Promise<CandleData> {
+  const supabase = createClient()
 
-type CandlesStore = Record<string, { count: number; lit: boolean }>
+  const { count } = await supabase
+    .from("candles")
+    .select("*", { count: "exact", head: true })
+    .eq("memorial_id", memorialId)
 
-export function getCandle(memorialId: string): CandleData {
-  const store = readStore<CandlesStore>(CANDLES_KEY, {})
-  const entry = store[memorialId]
-  return entry
-    ? { count: entry.count, litByThisBrowser: entry.lit }
-    : { count: 0, litByThisBrowser: false }
-}
-
-export function lightCandle(memorialId: string): CandleData {
-  const store = readStore<CandlesStore>(CANDLES_KEY, {})
-  const entry = store[memorialId] ?? { count: 0, lit: false }
-
-  if (entry.lit) {
-    return { count: entry.count, litByThisBrowser: true }
+  let litByCurrentUser = false
+  if (userId) {
+    const { data } = await supabase
+      .from("candles")
+      .select("id")
+      .eq("memorial_id", memorialId)
+      .eq("user_id", userId)
+      .maybeSingle()
+    litByCurrentUser = !!data
   }
 
-  entry.count += 1
-  entry.lit = true
-  store[memorialId] = entry
-  writeStore(CANDLES_KEY, store)
-  return { count: entry.count, litByThisBrowser: true }
+  return { count: count ?? 0, litByCurrentUser }
+}
+
+export async function lightCandle(
+  memorialId: string,
+  userId: string
+): Promise<CandleData> {
+  const supabase = createClient()
+
+  const { data: existing } = await supabase
+    .from("candles")
+    .select("id")
+    .eq("memorial_id", memorialId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (!existing) {
+    await supabase
+      .from("candles")
+      .insert({ memorial_id: memorialId, user_id: userId })
+  }
+
+  return getCandle(memorialId, userId)
 }
 
 // ── Comments ────────────────────────────────────────────────────────
 
-const COMMENTS_KEY = "pethernity-comments"
+export async function getComments(memorialId: string): Promise<Comment[]> {
+  const supabase = createClient()
 
-type CommentsStore = Record<string, Comment[]>
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, user_id, text, created_at, profiles(display_name)")
+    .eq("memorial_id", memorialId)
+    .order("created_at", { ascending: false })
 
-export function getComments(memorialId: string): Comment[] {
-  const store = readStore<CommentsStore>(COMMENTS_KEY, {})
-  const list = store[memorialId] ?? []
-  return list.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  if (error || !data) return []
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((c: any) => ({
+    id: c.id,
+    user_id: c.user_id,
+    author_name: c.profiles?.display_name || "Anonimo",
+    text: c.text,
+    created_at: c.created_at,
+  }))
 }
 
-export function addComment(
+export async function addComment(
   memorialId: string,
-  text: string,
-  authorName?: string
-): Comment {
-  const store = readStore<CommentsStore>(COMMENTS_KEY, {})
-  const list = store[memorialId] ?? []
+  userId: string,
+  text: string
+): Promise<Comment | null> {
+  const supabase = createClient()
 
-  const comment: Comment = {
-    id: crypto.randomUUID(),
-    authorName: authorName?.trim() || "Anonimo",
-    text: text.trim().slice(0, 500),
-    createdAt: new Date().toISOString(),
+  const { data, error } = await supabase
+    .from("comments")
+    .insert({
+      memorial_id: memorialId,
+      user_id: userId,
+      text: text.trim().slice(0, 500),
+    })
+    .select("id, user_id, text, created_at, profiles(display_name)")
+    .single()
+
+  if (error || !data) return null
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as any
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    author_name: row.profiles?.display_name || "Anonimo",
+    text: row.text,
+    created_at: row.created_at,
   }
-
-  list.push(comment)
-  store[memorialId] = list
-  writeStore(COMMENTS_KEY, store)
-  return comment
 }
 
-// ── Aggregate counts (for map badges) ───────────────────────────────
+// ── Aggregate counts ───────────────────────────────────────────────
 
-export function getInteractionCounts(memorialId: string): InteractionCounts {
+export async function getInteractionCounts(
+  memorialId: string
+): Promise<InteractionCounts> {
+  const supabase = createClient()
+
+  const [likes, candles, comments] = await Promise.all([
+    supabase
+      .from("likes")
+      .select("*", { count: "exact", head: true })
+      .eq("memorial_id", memorialId),
+    supabase
+      .from("candles")
+      .select("*", { count: "exact", head: true })
+      .eq("memorial_id", memorialId),
+    supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("memorial_id", memorialId),
+  ])
+
   return {
-    likes: getLikes(memorialId).count,
-    candles: getCandle(memorialId).count,
-    comments: getComments(memorialId).length,
+    likes: likes.count ?? 0,
+    candles: candles.count ?? 0,
+    comments: comments.count ?? 0,
   }
 }
 

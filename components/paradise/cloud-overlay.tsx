@@ -23,8 +23,8 @@ export function MapCloudLayer({
   mode,
   occupiedCloudIds,
 }: MapCloudLayerProps) {
-  const occupied = occupiedCloudIds ?? new Set(memorials.map((m) => m.cloudId))
-  const memorialByCloud = new Map(memorials.map((m) => [m.cloudId, m]))
+  const occupied = occupiedCloudIds ?? new Set(memorials.map((m) => m.cloud_id))
+  const memorialByCloud = new Map(memorials.map((m) => [m.cloud_id, m]))
 
   return (
     <>

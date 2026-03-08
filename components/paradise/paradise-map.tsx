@@ -13,10 +13,11 @@ import {
   DialogContent,
 } from "@/components/ui/dialog"
 import Link from "next/link"
+import { UserMenu } from "@/components/auth/user-menu"
 
 function InteractionBadges({ memorialId }: { memorialId: string }) {
   const [counts, setCounts] = useState<InteractionCounts | null>(null)
-  useEffect(() => { setCounts(getInteractionCounts(memorialId)) }, [memorialId])
+  useEffect(() => { getInteractionCounts(memorialId).then(setCounts) }, [memorialId])
 
   if (!counts || (counts.likes + counts.candles + counts.comments === 0)) return null
 
@@ -40,7 +41,7 @@ export function ParadiseMap() {
   const searchRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setMemorials(getMemorials())
+    getMemorials().then(setMemorials)
   }, [])
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export function ParadiseMap() {
 
   const filtered = query.trim()
     ? memorials.filter(m =>
-        m.petName.toLowerCase().includes(query.toLowerCase()) ||
+        m.pet_name.toLowerCase().includes(query.toLowerCase()) ||
         m.phrase.toLowerCase().includes(query.toLowerCase())
       )
     : memorials
@@ -119,11 +120,11 @@ export function ParadiseMap() {
                               onClick={() => { setSelected(m); setSearchOpen(false) }}
                               className="flex items-center gap-3 w-full px-3 py-2 hover:bg-rosa-aurora/10 transition-colors"
                             >
-                              <img src={m.photo} className="size-9 rounded-full object-cover ring-2 ring-white" alt={m.petName} />
+                              <img src={m.photo_url} className="size-9 rounded-full object-cover ring-2 ring-white" alt={m.pet_name} />
                               <div className="text-left">
-                                <p className="text-sm font-medium">{m.petName}</p>
+                                <p className="text-sm font-medium">{m.pet_name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {m.petType === "dog" ? "Cane" : m.petType === "cat" ? "Gatto" : "Animale"}
+                                  {m.pet_type === "dog" ? "Cane" : m.pet_type === "cat" ? "Gatto" : "Animale"}
                                 </p>
                               </div>
                             </button>
@@ -136,7 +137,8 @@ export function ParadiseMap() {
               </div>
             </div>
 
-            <div className="absolute right-4 top-4 z-20 flex flex-col gap-2">
+            <div className="absolute right-4 top-4 z-20 flex flex-col items-end gap-2">
+              <UserMenu />
               <Button variant="secondary" size="icon" className="shadow-md" onClick={() => zoomIn()}>
                 <ZoomIn className="size-5" />
               </Button>
@@ -200,18 +202,18 @@ export function ParadiseMap() {
                 <div className="relative">
                   <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-rosa-aurora/20 via-celeste-paradiso/20 to-oro-antico/20 blur-xl" />
                   <img
-                    src={selected.photo}
-                    alt={selected.petName}
+                    src={selected.photo_url}
+                    alt={selected.pet_name}
                     className="relative h-52 w-52 rounded-2xl object-cover ring-4 ring-white shadow-lg"
                   />
                 </div>
 
                 {/* Name & type */}
                 <div className="text-center">
-                  <h2 className="font-display text-3xl font-bold text-foreground">{selected.petName}</h2>
+                  <h2 className="font-display text-3xl font-bold text-foreground">{selected.pet_name}</h2>
                   <p className="mt-1 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
                     <Heart className="size-3.5 fill-rosa-aurora text-rosa-aurora" />
-                    {selected.petType === "dog" ? "Cane" : selected.petType === "cat" ? "Gatto" : "Animale"}
+                    {selected.pet_type === "dog" ? "Cane" : selected.pet_type === "cat" ? "Gatto" : "Animale"}
                   </p>
                 </div>
 
@@ -228,18 +230,18 @@ export function ParadiseMap() {
                 </blockquote>
 
                 {/* Dates */}
-                {(selected.birthDate || selected.deathDate) && (
+                {(selected.birth_date || selected.death_date) && (
                   <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
-                    {selected.birthDate && (
+                    {selected.birth_date && (
                       <span className="flex items-center gap-1">
                         <Calendar className="size-3" />
-                        Nato il {new Date(selected.birthDate).toLocaleDateString("it-IT")}
+                        Nato il {new Date(selected.birth_date).toLocaleDateString("it-IT")}
                       </span>
                     )}
-                    {selected.deathDate && (
+                    {selected.death_date && (
                       <span className="flex items-center gap-1">
                         <Calendar className="size-3" />
-                        Scomparso il {new Date(selected.deathDate).toLocaleDateString("it-IT")}
+                        Scomparso il {new Date(selected.death_date).toLocaleDateString("it-IT")}
                       </span>
                     )}
                   </div>

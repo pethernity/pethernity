@@ -3,6 +3,7 @@ import { Playfair_Display, DM_Sans, Geist_Mono } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@/components/auth/auth-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils";
 
@@ -44,7 +45,9 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, fontDisplay.variable, "font-sans", fontSans.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

@@ -1,84 +1,93 @@
+import { createClient } from "@/lib/supabase/client"
 import { CLOUD_SPOTS } from "./cloud-spots"
 
 export interface Memorial {
   id: string
-  petName: string
-  petType: "dog" | "cat" | "other"
-  photo: string
+  user_id: string
+  pet_name: string
+  pet_type: "dog" | "cat" | "other"
+  photo_url: string
   phrase: string
-  birthDate?: string
-  deathDate?: string
-  cloudId: string
-  createdAt: string
+  birth_date: string | null
+  death_date: string | null
+  cloud_id: string
+  created_at: string
 }
 
-const STORAGE_KEY = "pethernity-memorials"
+export async function getMemorials(): Promise<Memorial[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("memorials")
+    .select("*")
+    .order("created_at", { ascending: true })
 
-/** Migrate old position-based memorials to cloudId */
-function migrateMemorials(raw: unknown[]): Memorial[] {
-  const occupied = new Set<string>()
-  return raw.map((entry) => {
-    const m = entry as Record<string, unknown>
-    if (m.cloudId && typeof m.cloudId === "string") {
-      occupied.add(m.cloudId)
-      return m as unknown as Memorial
-    }
-    // Old format: has position { x, y } — find nearest available cloud
-    const pos = m.position as { x: number; y: number } | undefined
-    let bestId = CLOUD_SPOTS[0].id
-    if (pos) {
-      let bestDist = Infinity
-      for (const spot of CLOUD_SPOTS) {
-        if (occupied.has(spot.id)) continue
-        const dx = spot.x - pos.x
-        const dy = spot.y - pos.y
-        const dist = dx * dx + dy * dy
-        if (dist < bestDist) {
-          bestDist = dist
-          bestId = spot.id
-        }
-      }
-    }
-    occupied.add(bestId)
-    const { position: _, ...rest } = m as Record<string, unknown> & { position?: unknown }
-    return { ...rest, cloudId: bestId } as unknown as Memorial
-  })
-}
-
-export function getMemorials(): Memorial[] {
-  if (typeof window === "undefined") return []
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw) as unknown[]
-    const needsMigration = parsed.some(
-      (e) => (e as Record<string, unknown>).position !== undefined
-    )
-    if (needsMigration) {
-      const migrated = migrateMemorials(parsed)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated))
-      return migrated
-    }
-    return parsed as Memorial[]
-  } catch {
+  if (error) {
+    console.error("Error fetching memorials:", error)
     return []
   }
+  return data as Memorial[]
 }
 
-export function getMemorial(id: string): Memorial | undefined {
-  return getMemorials().find((m) => m.id === id)
+export async function getMemorial(id: string): Promise<Memorial | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("memorials")
+    .select("*")
+    .eq("id", id)
+    .single()
+
+  if (error) return null
+  return data as Memorial
 }
 
-export function saveMemorial(memorial: Memorial): void {
-  const memorials = getMemorials()
-  memorials.push(memorial)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(memorials))
+export async function saveMemorial(
+  memorial: Omit<Memorial, "id" | "created_at">
+): Promise<Memorial | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("memorials")
+    .insert(memorial)
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error saving memorial:", error)
+    return null
+  }
+  return data as Memorial
 }
 
-export function createMemorialId(): string {
-  return crypto.randomUUID()
+export async function deleteMemorial(id: string): Promise<boolean> {
+  const supabase = createClient()
+  const { error } = await supabase.from("memorials").delete().eq("id", id)
+  return !error
 }
 
-export function getOccupiedCloudIds(): Set<string> {
-  return new Set(getMemorials().map((m) => m.cloudId))
+export async function getOccupiedCloudIds(): Promise<Set<string>> {
+  const memorials = await getMemorials()
+  return new Set(memorials.map((m) => m.cloud_id))
+}
+
+export async function uploadMemorialPhoto(
+  userId: string,
+  file: File
+): Promise<string | null> {
+  const supabase = createClient()
+  const ext = file.name.split(".").pop() || "jpg"
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+
+  const { error } = await supabase.storage
+    .from("memorial-photos")
+    .upload(path, file)
+
+  if (error) {
+    console.error("Error uploading photo:", error)
+    return null
+  }
+
+  const { data } = supabase.storage
+    .from("memorial-photos")
+    .getPublicUrl(path)
+
+  return data.publicUrl
 }

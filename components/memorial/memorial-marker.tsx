@@ -32,8 +32,8 @@ export function MemorialMarker({
         )}
       >
         <img
-          src={memorial.photo}
-          alt={memorial.petName}
+          src={memorial.photo_url}
+          alt={memorial.pet_name}
           className="size-full object-cover"
         />
       </div>
@@ -46,7 +46,7 @@ export function MemorialMarker({
         )}
       >
         <p className={cn("font-display font-bold text-foreground", isSmall ? "text-xs" : "text-sm")}>
-          {memorial.petName}
+          {memorial.pet_name}
         </p>
         {!isSmall && memorial.phrase && (
           <p className="mt-1 max-w-[140px] text-center text-xs text-muted-foreground line-clamp-2">
