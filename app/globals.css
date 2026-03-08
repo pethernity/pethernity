@@ -152,3 +152,22 @@
     @apply font-sans;
     }
 }
+
+@keyframes cloud-drift-slow {
+  0% { transform: translateX(-10%); }
+  100% { transform: translateX(10%); }
+}
+@keyframes cloud-drift-medium {
+  0% { transform: translateX(5%); }
+  100% { transform: translateX(-15%); }
+}
+@keyframes cloud-drift-fast {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(15%); }
+}
+
+@theme inline {
+  --animate-cloud-drift-slow: cloud-drift-slow 30s ease-in-out infinite alternate;
+  --animate-cloud-drift-medium: cloud-drift-medium 22s ease-in-out infinite alternate;
+  --animate-cloud-drift-fast: cloud-drift-fast 16s ease-in-out infinite alternate;
+}
