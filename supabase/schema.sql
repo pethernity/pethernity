@@ -121,6 +121,24 @@ create policy "Users can insert own comments"
 create policy "Users can delete own comments"
   on public.comments for delete using (auth.uid() = user_id);
 
+-- ── Chat Messages ─────────────────────────────────────────────────
+create table public.chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  message text not null check (char_length(message) <= 500),
+  created_at timestamptz default now() not null
+);
+
+alter table public.chat_messages enable row level security;
+
+create policy "Chat messages are viewable by everyone"
+  on public.chat_messages for select using (true);
+
+create policy "Authenticated users can insert own messages"
+  on public.chat_messages for insert with check (auth.uid() = user_id);
+
+create index chat_messages_created_at_idx on public.chat_messages (created_at desc);
+
 -- ── Storage bucket ──────────────────────────────────────────────────
 insert into storage.buckets (id, name, public)
 values ('memorial-photos', 'memorial-photos', true)

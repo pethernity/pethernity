@@ -8,6 +8,8 @@ import { getMemorials, type Memorial } from "@/lib/memorials"
 import { getInteractionCounts, type InteractionCounts } from "@/lib/interactions"
 import { MapCloudLayer } from "./cloud-overlay"
 import { Rainbow } from "./rainbow"
+import { ParadiseTemple } from "./paradise-temple"
+import { RainbowArc } from "@/components/landing/rainbow-arc"
 import {
   Dialog,
   DialogContent,
@@ -160,16 +162,47 @@ export function ParadiseMap() {
                 <Rainbow className="absolute left-[10%] top-[5%] h-[500px] w-[800px]" />
                 <Rainbow className="absolute right-[5%] top-[10%] h-[400px] w-[600px] -scale-x-100" />
 
-                {/* Clouds with memorial markers */}
-                <MapCloudLayer
-                  memorials={filtered}
-                  mode="display"
-                  onMarkerClick={setSelected}
+                {/* ── Central Temple Area ── */}
+                {/* Radial glow behind temple */}
+                <div
+                  className="pointer-events-none absolute"
+                  style={{
+                    left: 2000 - 500,
+                    top: 1200 - 500,
+                    width: 1000,
+                    height: 1000,
+                    background: "radial-gradient(circle, rgba(201,168,76,0.18) 0%, rgba(242,220,138,0.08) 40%, transparent 70%)",
+                  }}
                 />
+
+                {/* Rainbow arc above temple */}
+                <div
+                  className="pointer-events-none absolute"
+                  style={{ left: 2000 - 450, top: 1200 - 480, width: 900, height: 450, opacity: 0.4 }}
+                >
+                  <RainbowArc />
+                </div>
+
+                {/* The Golden Temple */}
+                <div
+                  className="absolute z-[1]"
+                  style={{ left: 2000 - 320, top: 1200 - 260, width: 640, height: 480 }}
+                >
+                  <ParadiseTemple className="h-full w-full drop-shadow-lg" />
+                </div>
+
+                {/* Clouds with memorial markers (above temple) */}
+                <div className="relative z-[2]">
+                  <MapCloudLayer
+                    memorials={filtered}
+                    mode="display"
+                    onMarkerClick={setSelected}
+                  />
+                </div>
 
                 {/* Empty state */}
                 {memorials.length === 0 && (
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                  <div className="absolute left-1/2 top-1/2 z-[3] -translate-x-1/2 -translate-y-1/2 text-center">
                     <p className="font-display text-2xl font-bold text-white/80">
                       Il paradiso attende il primo ricordo
                     </p>

@@ -8,15 +8,15 @@ export interface CloudSpot {
 }
 
 export const CLOUD_SPOTS: CloudSpot[] = [
-  // Center area — denser for initial viewport
-  { id: "cloud-01", x: 1900, y: 1100, width: 320, height: 150, variant: 1 },
-  { id: "cloud-02", x: 2200, y: 1000, width: 280, height: 130, variant: 2 },
-  { id: "cloud-03", x: 1650, y: 1250, width: 350, height: 160, variant: 3 },
-  { id: "cloud-04", x: 2050, y: 1350, width: 300, height: 140, variant: 1 },
-  { id: "cloud-05", x: 2400, y: 1200, width: 260, height: 120, variant: 2 },
-  { id: "cloud-06", x: 1750, y: 950, width: 340, height: 155, variant: 3 },
-  { id: "cloud-07", x: 2100, y: 850, width: 290, height: 135, variant: 1 },
-  { id: "cloud-08", x: 1500, y: 1050, width: 310, height: 145, variant: 2 },
+  // Center ring — arranged around the central temple at (2000, 1200)
+  { id: "cloud-01", x: 1400, y: 900, width: 320, height: 150, variant: 1 },
+  { id: "cloud-02", x: 2000, y: 720, width: 280, height: 130, variant: 2 },
+  { id: "cloud-03", x: 2600, y: 900, width: 350, height: 160, variant: 3 },
+  { id: "cloud-04", x: 2750, y: 1200, width: 300, height: 140, variant: 1 },
+  { id: "cloud-05", x: 2600, y: 1520, width: 260, height: 120, variant: 2 },
+  { id: "cloud-06", x: 2000, y: 1650, width: 340, height: 155, variant: 3 },
+  { id: "cloud-07", x: 1400, y: 1520, width: 290, height: 135, variant: 1 },
+  { id: "cloud-08", x: 1250, y: 1200, width: 310, height: 145, variant: 2 },
 
   // Upper-left quadrant
   { id: "cloud-09", x: 400, y: 300, width: 280, height: 130, variant: 3 },

@@ -4,7 +4,7 @@ import { HowItWorks } from "@/components/landing/how-it-works"
 import { Footer } from "@/components/landing/footer"
 
 export const metadata: Metadata = {
-  title: "Pethernity — Un paradiso per chi ci ha amato",
+  title: "ciao ciao",
   description: "Crea un memoriale per il tuo animale domestico in un paradiso digitale tra nuvole e arcobaleni.",
 }
 

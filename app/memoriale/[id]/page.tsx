@@ -78,7 +78,7 @@ export default function MemorialePage() {
   }
 
   return (
-    <div className="relative min-h-svh bg-gradient-to-b from-[#A8DEF0] via-background to-[#E8F6FE]">
+    <div className="relative min-h-svh bg-gradient-to-b from-[#A8DEF0] via-background to-[#E8F6FE] pt-16">
       <DecorativeClouds />
       <Rainbow className="pointer-events-none absolute -right-20 top-0 h-[400px] w-[600px] opacity-30" />
 

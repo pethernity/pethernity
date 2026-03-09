@@ -1,20 +1,26 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { DecorativeClouds } from "@/components/paradise/cloud-overlay"
-import { Rainbow } from "@/components/paradise/rainbow"
-import { UserMenu } from "@/components/auth/user-menu"
 import { Heart, ChevronDown } from "lucide-react"
+import { TempleIllustration } from "./temple-illustration"
+import { RainbowArc } from "./rainbow-arc"
+import { CloudParallax } from "./cloud-parallax"
 
 export function Hero() {
   return (
     <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#A8DEF0] via-background to-[#F5EDE0] px-6 text-center">
-      <div className="absolute right-4 top-4 z-20">
-        <UserMenu />
+      {/* Rainbow arc — behind everything, centered above temple */}
+      <div className="pointer-events-none absolute bottom-[15%] left-1/2 z-[1] w-[700px] -translate-x-1/2 opacity-60 md:w-[900px] lg:w-[1100px]">
+        <RainbowArc />
       </div>
-      <DecorativeClouds />
-      <Rainbow className="pointer-events-none absolute -right-20 -top-10 h-[400px] w-[600px] rotate-12 opacity-40" />
-      <Rainbow className="pointer-events-none absolute -left-20 bottom-10 h-[300px] w-[500px] -rotate-12 opacity-25" />
 
+      {/* Temple — bottom center, behind content */}
+      <div className="pointer-events-none absolute bottom-0 left-1/2 z-[2] w-[320px] -translate-x-1/2 animate-temple-glow opacity-50 md:w-[420px] lg:w-[500px]">
+        <TempleIllustration />
+      </div>
+
+      {/* Main content — on top of temple/rainbow */}
       <div className="relative z-10 mx-auto max-w-2xl">
         <div className="mb-6 inline-flex animate-fade-up items-center gap-2 rounded-full border border-rosa-aurora/30 bg-white/60 px-4 py-2 text-sm font-medium text-primary shadow-sm backdrop-blur-sm">
           <Heart className="size-4 fill-current" />
@@ -48,6 +54,9 @@ export function Hero() {
           <ChevronDown className="size-5" />
         </div>
       </div>
+
+      {/* Cloud parallax overlay — on top of everything, dissolves on scroll */}
+      <CloudParallax />
     </section>
   )
 }
