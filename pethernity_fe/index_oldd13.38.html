@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-B9606P9S93"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-B9606P9S93');
+  </script>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#ffffff">
+  <title>Pethernity – Commemora il tuo amico</title>
+  <link rel="icon" type="image/webp" href="logo.webp">
+  <link rel="apple-touch-icon" href="logo.webp">
+  <meta name="description" content="Uno spazio digitale, sereno e personale, per onorare con noi la memoria del tuo animale.">
+  <meta property="og:title" content="Pethernity – Commemora il tuo amico">
+  <meta property="og:description" content="Uno spazio digitale, sereno e personale, per onorare con noi la memoria del tuo animale.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://pethernity.com/intro.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pethernity – Commemora il tuo amico">
+  <meta name="twitter:description" content="Uno spazio digitale, sereno e personale, per onorare con noi la memoria del tuo animale.">
+  <meta name="twitter:image" content="https://pethernity.com/intro.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Oswald:wght@200..700&family=Rubik+Pixels&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html {
+      height: 100%;
+      width: 100%;
+      background-color: #7cbd59;
+      background-image:
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%),
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 100vw; height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
+      min-height: -webkit-fill-available;
+      background-color: #7cbd59;
+      background-image:
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%),
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none; -webkit-user-select: none;
+      padding: 0;
+      margin: 0;
+    }
+    #viewport {
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0;
+      overflow: hidden;
+      cursor: grab;
+      background-color: #7cbd59;
+      background-image:
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%),
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      width: 100%;
+      height: 100%;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+    #viewport:active { cursor: grabbing; }
+    
+    #world {
+      position: absolute; 
+      top: 50%; 
+      left: 50%;
+      width: 0;
+      height: 0;
+      image-rendering: pixelated;
+      transform-origin: center center;
+      z-index: 1;
+    }
+    .hidden { display: none !important; }
+    #home-btn, #zoom-btn, #music-btn {
+      position: fixed; bottom: 20px; z-index: 100;
+      background: #37474f; color: #fff; border: 2px solid #546e7a;
+      padding: 10px 14px; font-size: 20px; cursor: pointer;
+      font-family: inherit; box-shadow: 0 3px 0 rgba(0,0,0,0.5);
+      border-radius: 50%; width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+    }
+    #home-btn { right: 20px; }
+    #zoom-btn { right: 80px; }
+    #music-btn { right: 140px; }
+    #music-btn.playing { background: #558b2f; border-color: #689f38; }
+    #home-btn:hover, #zoom-btn:hover, #music-btn:hover { background: #455a64; transform: scale(1.1); }
+    #home-btn:active, #zoom-btn:active, #music-btn:active { transform: translateY(2px) scale(1); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+    .temple-area {
+      position: absolute; z-index: 5;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-end; pointer-events: none;
+    }
+    .temple-image {
+      width: 100%; height: auto; image-rendering: pixelated; display: block;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    }
+
+    .hole-spot {
+      position: absolute; width: 50px; height: 50px;
+      background: #558b2f; border: 3px dashed rgba(255,255,255,0.5);
+      border-radius: 50%; cursor: pointer; z-index: 4;
+      display: flex; justify-content: center; align-items: center;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+      transition: background 0.15s, transform 0.15s;
+    }
+    .hole-spot:hover { background: #689f38; transform: scale(1.1); border-color: #fff; }
+    .hole-spot.bought {
+      border: none; background: transparent; box-shadow: none; border-radius: 0;
+      width: 55px; height: 70px; transform: none !important; cursor: pointer;
+    }
+    .hole-spot.bought::after { display: none; }
+    .tombstone {
+      width: 100%; height: 100%; background-color: #b0bec5;
+      border: 2px solid #546e7a; border-radius: 20px 20px 2px 2px; position: relative;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.3), inset 2px 2px 0 #cfd8dc, inset -2px -2px 0 #90a4ae;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      padding-top: 5px; overflow: hidden;
+    }
+    .tomb-cross {
+      font-size: 10px; line-height: 1; margin-bottom: 2px; flex-shrink: 0;
+      color: #c62828; text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .tomb-info { display: flex; flex-direction: column; align-items: center; width: 90%; text-align: center; flex-grow: 1; }
+    .t-name { font-size: 7px; font-weight: bold; color: #263238; line-height: 1; margin-bottom: 2px; word-wrap: break-word; max-width: 100%; text-transform: uppercase; }
+    .t-date { font-size: 5px; color: #455a64; margin-bottom: 3px; white-space: nowrap; font-family: sans-serif; font-weight: bold; }
+    .t-epitaph { font-size: 5px; color: #37474f; font-style: italic; line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; width: 100%; }
+    .tomb-photo { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 1px solid #546e7a; margin-bottom: 2px; flex-shrink: 0; background: #cfd8dc; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    .decor { position: absolute; pointer-events: none; z-index: 2; image-rendering: pixelated; }
+    .decor.tree { z-index: 2; filter: drop-shadow(4px 4px 0 rgba(0,0,0,0.3)); }
+    .decor.stone { z-index: 1; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.3)); }
+    .decor img { width: 100%; height: auto; display: block; image-rendering: pixelated; }
+    .pixel-flower {
+      position: absolute; pointer-events: none; z-index: 1;
+      image-rendering: pixelated;
+    }
+    .pf-stem {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      background: #4a8c2a; image-rendering: pixelated;
+    }
+    .pf-head {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      border-radius: 1px; image-rendering: pixelated;
+    }
+    .pf-center {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+      border-radius: 50%; image-rendering: pixelated;
+    }
+    .pf-leaf {
+      position: absolute; bottom: 2px; background: #5a9e35;
+      border-radius: 1px; image-rendering: pixelated;
+    }
+    
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8); z-index: 999;
+      justify-content: center; align-items: center; backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: linear-gradient(135deg, rgba(255, 182, 193, 0.9) 0%, rgba(255, 192, 203, 0.85) 50%, rgba(230, 180, 200, 0.9) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 25px; 
+      border-radius: 20px; 
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      width: 85%; 
+      max-width: 360px; 
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      text-align: center; 
+      font-family: inherit;
+    }
+    .modal-content h3 {
+      color: #6b1b3d;
+      text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+      letter-spacing: 1px;
+    }
+    .modal-content input, .modal-content textarea {
+      display: block; width: 100%; margin-bottom: 12px; padding: 10px;
+      box-sizing: border-box; 
+      border: 2px solid rgba(255, 255, 255, 0.4); 
+      border-radius: 12px; 
+      font-family: inherit;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .modal-content input:focus, .modal-content textarea:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.3);
+    }
+    .modal-btn {
+      background: #558b2f; color: white; border: none; padding: 10px 20px;
+      font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer;
+      box-shadow: 0 3px 0 #33691e; width: 100%; transition: all 0.3s ease;
+    }
+    .modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(103, 114, 229, 0.6);
+    }
+    .modal-btn:active { transform: translateY(2px); box-shadow: 0 2px 10px rgba(103, 114, 229, 0.3); }
+    #view-modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85); z-index: 1000;
+      justify-content: center; align-items: center; backdrop-filter: blur(4px);
+    }
+    #view-modal .modal-content {
+      max-width: 380px; background: #fff;
+    }
+    #view-photo-container { margin: 15px 0; display: flex; justify-content: center; align-items: center; min-height: 100px; }
+    #view-photo { max-width: 100%; max-height: 250px; border-radius: 8px; border: 3px solid #546e7a; object-fit: contain; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    #view-no-photo-text { color: #90a4ae; font-size: 12px; }
+    .view-close-btn { background: #37474f; color: #fff; border: 2px solid #546e7a; padding: 10px 20px; font-size: 16px; cursor: pointer; font-weight: bold; border-radius: 4px; box-shadow: 0 3px 0 rgba(0,0,0,0.5); width: 100%; margin-top: 15px; }
+    .view-close-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+    
+    /* === WELCOME POKEMON-STYLE MESSAGE === */
+    #welcome-modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75); z-index: 4000;
+      justify-content: center; align-items: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .welcome-box {
+      background: #fff; border: 6px solid #263238; border-radius: 16px;
+      width: 90%; max-width: 480px; max-height: 85vh; padding: 0; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      font-family: 'Courier New', monospace; overflow: hidden;
+      display: flex; flex-direction: column;
+      margin: auto;
+    }
+    .welcome-avatar {
+      background: linear-gradient(135deg, #ff69b4 0%, #ff8eb8 100%);
+      padding: 20px 15px; text-align: center; border-bottom: 4px solid #263238;
+      flex-shrink: 0;
+    }
+    .welcome-avatar-img {
+      width: 70px; height: 70px; border-radius: 50%; border: 4px solid #fff;
+      background: #fff; display: inline-flex; align-items: center; justify-content: center;
+      padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.3); overflow: hidden;
+    }
+    .welcome-avatar-img img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    }
+    .welcome-text {
+      padding: 20px 18px; background: #f5f5f5; color: #263238; font-size: 14px;
+      line-height: 1.7; border-bottom: 4px solid #263238;
+      font-family: 'Lora', 'Georgia', serif;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .welcome-text strong { color: #2e7d32; font-weight: bold; }
+    .welcome-footer {
+      background: #eceff1; padding: 15px 18px; text-align: center;
+      flex-shrink: 0;
+    }
+    .welcome-btn {
+      background: #ff69b4; color: #fff; border: none; padding: 12px 30px;
+      font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer;
+      font-family: 'Courier New', monospace; box-shadow: 0 4px 0 #d1477a;
+      transition: transform 0.1s;
+    }
+    .welcome-btn:hover { background: #ff8eb8; }
+    .welcome-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #d1477a; }
+    
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .welcome-box {
+        width: 95%;
+        max-height: 80vh;
+      }
+      .welcome-avatar {
+        padding: 15px 10px;
+      }
+      .welcome-avatar-img {
+        width: 60px;
+        height: 60px;
+      }
+      .welcome-text {
+        padding: 15px 12px;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .welcome-text svg {
+        width: 16px !important;
+        height: 16px !important;
+      }
+      .welcome-footer {
+        padding: 12px 15px;
+      }
+      .welcome-btn {
+        padding: 10px 25px;
+        font-size: 13px;
+      }
+    }
+    
+    /* === SPLASH SCREEN === */
+    #splash-screen {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 3000;
+      overflow-y: auto; overflow-x: hidden;
+      background: #ffffff;
+    }
+    .splash-hero {
+      position: relative; width: 100%; min-height: 100vh;
+      min-height: calc(var(--vh, 1vh) * 100);
+      background: url('pc.webp') center/cover no-repeat #ffffff;
+      display: flex; flex-direction: column; justify-content: flex-start;
+      align-items: center; padding-top: calc(8vh + env(safe-area-inset-top));
+    }
+    @media (max-width: 768px) { .splash-hero { background-image: url('mobile .webp'); } }
+    .splash-page2 {
+      width: 100%; min-height: 100vh; 
+      background: #ffffff;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 60px 30px; text-align: center;
+    }
+    .splash-footer { 
+      width: 100%; 
+      background: rgba(255, 105, 180, 0.85); 
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 20px; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 8px; 
+      flex-wrap: wrap;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -4px 20px rgba(255, 105, 180, 0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .splash-footer span { font-family: 'Lora', 'Georgia', serif; color: rgba(255,255,255,0.95); font-size: 12px; font-weight: 500; }
+    .splash-footer-sep { color: rgba(255,255,255,0.5); font-size: 12px; }
+    .splash-footer a { 
+      font-family: 'Lora', 'Georgia', serif; 
+      color: #ffffff; 
+      font-size: 12px; 
+      text-decoration: none; 
+      cursor: pointer; 
+      transition: color 0.3s ease; 
+      font-weight: 500;
+    }
+    .splash-footer a:hover { color: #ffd700; }
+    
+    /* Zampe decorative sparse */
+    .paw-decoration {
+      position: absolute;
+      opacity: 0.2;
+      color: #74b9ff;
+      pointer-events: none;
+      animation: pawFloat 4s ease-in-out infinite;
+    }
+    @keyframes pawFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+    
+    /* Animazione sottolineatura rosa */
+    .underline-animation {
+      position: relative;
+      display: inline-block;
+    }
+    .underline-animation::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+      width: 0;
+      height: 3px;
+      background: #ff69b4;
+      animation: drawUnderline 2s ease-out forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes drawUnderline {
+      to { width: 100%; }
+    }
+    
+    /* Immagine che scivola da sinistra */
+    .slide-from-right {
+      position: absolute;
+      left: 0;
+      top: 45%;
+      transform: translateX(-100%);
+      max-width: 250px;
+      max-height: 280px;
+      object-fit: contain;
+      z-index: 10;
+      animation: slideInLeft 1.5s ease-out forwards;
+      animation-delay: 1s;
+    }
+    @keyframes slideInLeft {
+      to { 
+        transform: translateX(0); 
+      }
+    }
+    @media (max-width: 768px) {
+      .slide-from-right {
+        max-width: 150px;
+        max-height: 170px;
+        top: 50%;
+      }
+    }
+    
+    /* Cuori decorativi nello sfondo */
+    .heart-decoration {
+      position: absolute;
+      opacity: 0.08;
+      color: #ff69b4;
+      pointer-events: none;
+      z-index: 0;
+      animation: heartFloat 6s ease-in-out infinite;
+    }
+    @keyframes heartFloat {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-15px) scale(1.05); }
+    }
+    
+    /* Box animato per Stripe */
+    .stripe-box {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 20px;
+      border: 2px solid #ff69b4;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .stripe-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #ff69b4, #ff8eb8);
+      z-index: -1;
+      animation: fillPink 2s ease-out forwards;
+      animation-delay: 1.2s;
+    }
+    @keyframes fillPink {
+      to { width: 100%; }
+    }
+    .stripe-box-text {
+      position: relative;
+      z-index: 2;
+      transition: color 0.3s ease;
+      transition-delay: 2s;
+    }
+    .stripe-box::before {
+      animation: fillPink 2s ease-out forwards;
+      animation-delay: 1.2s;
+    }
+    .stripe-box-text {
+      animation: textColorChange 0.3s ease forwards;
+      animation-delay: 3.2s;
+    }
+    @keyframes textColorChange {
+      to { color: #ffffff; }
+    }
+    
+    .splash-scroll-hint { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 2; color: rgba(255,255,255,0.8); font-size: 28px; animation: bounceDown 1.5s ease infinite; cursor: pointer; }
+    @keyframes bounceDown { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+    .splash-top { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 1; display: flex; flex-direction: column; align-items: center; max-width: 600px; width: 92%; text-align: center; }
+    .splash-center { position: absolute; top: 78%; left: 50%; transform: translate(-50%,-50%); z-index: 1; }
+    .splash-text { color: #5359e0; font-family: 'Lora', 'Georgia', serif; font-size: clamp(15px,3.5vw,20px); line-height: 1.85; margin-bottom: 15px; letter-spacing: 0.3px; background: rgba(255,255,255,0.7); padding: 15px 20px; border-radius: 12px; text-shadow: none; opacity: 0; animation: fadeInUp 1.2s ease forwards; }
+    .splash-text strong { color: #2e7d32; font-family: 'Playfair Display', 'Georgia', serif; font-weight: 700; font-size: 1.1em; }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .splash-enter-btn {
+      background: rgba(83,89,224,0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      color: #3a3f9e; font-family: 'Playfair Display', 'Georgia', serif; font-weight: bold; font-size: clamp(15px,3.5vw,18px); letter-spacing: 2px;
+      padding: 14px 50px; border: 1.5px solid rgba(83,89,224,0.3); border-radius: 16px;
+      cursor: pointer; transition: background 0.25s, transform 0.1s, box-shadow 0.25s;
+      box-shadow: 0 4px 20px rgba(83,89,224,0.15);
+    }
+    .splash-enter-btn:hover { background: rgba(83,89,224,0.35); }
+    .splash-enter-btn:active { transform: translateY(2px); }
+    
+    /* === Modali Termini, Privacy, Cookie === */
+    #terms-modal, #cookie-modal, #privacy-modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85); z-index: 5000;
+      justify-content: center; align-items: center; backdrop-filter: blur(4px);
+    }
+    .terms-box {
+      background: #fff; width: 92%; max-width: 520px; max-height: 85vh;
+      border-radius: 12px; border: 3px solid #37474f;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; overflow: hidden; overflow-x: hidden;
+    }
+    .terms-header {
+      padding: 16px 20px; border-bottom: 2px solid #e0e0e0;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #eceff1; flex-shrink: 0;
+    }
+    .terms-header h3 {
+      margin: 0; color: #263238; font-size: 16px; font-family: 'Courier New', monospace;
+    }
+    .terms-close {
+      background: #ff69b4; color: #fff; border: none; width: 32px; height: 32px;
+      border-radius: 50%; font-size: 18px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .terms-close:hover { background: #ff8eb8; }
+    .terms-body {
+      padding: 20px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+      font-family: 'Lora', 'Georgia', serif; font-size: 13px; color: #37474f;
+      line-height: 1.7; word-wrap: break-word; overflow-wrap: break-word;
+    }
+    .terms-body h2 {
+      font-family: 'Courier New', monospace; font-size: 15px; color: #263238;
+      margin: 20px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0;
+    }
+    .terms-body h2:first-child { margin-top: 0; }
+    .terms-body p { margin: 0 0 10px 0; }
+    .terms-body ul { margin: 0 0 10px 0; padding-left: 20px; }
+    .terms-body li { margin-bottom: 4px; }
+    .terms-body a { word-break: break-all; }
+    .terms-body .terms-footer-text {
+      margin-top: 20px; padding-top: 14px; border-top: 2px solid #e0e0e0;
+      text-align: center; font-style: italic; color: #546e7a;
+    }
+  </style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="world">
+    <div class="temple-area" id="temple" style="width:220px;">
+      <img src="tem.webp" alt="Mausoleo Centrale" class="temple-image">
+    </div>
+  </div>
+</div>
+
+<button id="home-btn" onclick="goHome()" title="Torna al centro">
+  <i data-lucide="house-heart" style="width: 24px; height: 24px; stroke-width: 2;"></i>
+</button>
+
+<button id="zoom-btn" onclick="toggleZoom()" title="Zoom In/Out">
+  <i data-lucide="search" style="width: 24px; height: 24px; stroke-width: 2;"></i>
+</button>
+
+<button id="music-btn" onclick="toggleMusic()" title="Musica">
+  <i data-lucide="volume-2" style="width: 24px; height: 24px; stroke-width: 2;"></i>
+</button>
+
+<!-- Audio player nascosto -->
+<audio id="background-music" loop preload="auto">
+  <source src="loveu.mp3" type="audio/mpeg">
+</audio>
+
+<!-- Modal per creare una tomba - CON STRIPE -->
+<div class="modal-overlay" id="grave-modal">
+  <div class="modal-content">
+    <h3 style="margin-top:0; color:#6b1b3d;">ACQUISTA UN MEMORIALE</h3>
+
+    <input type="text" id="grave-name" placeholder="Nome dell'animale *" maxlength="30" required>
+    <input type="text" id="grave-date" placeholder="Date (es. 2010-2024) *" maxlength="20" required>
+    <textarea id="grave-text" rows="3" placeholder="Epitaffio (Breve messaggio) *" maxlength="100" required></textarea>
+    
+    <!-- Input Email -->
+    <input type="email" id="grave-email" placeholder="Email (per conferma pagamento)" style="font-size: 13px;">
+    
+    <!-- Input Foto -->
+    <div style="margin-bottom: 12px; text-align: left;">
+      <label style="font-size: 12px; font-weight: bold; color: #6b1b3d; margin-bottom: 4px; display: block;">Foto (Opzionale):</label>
+      <input type="file" id="grave-photo-input" accept="image/*" style="font-size:12px; padding:8px; border-radius: 8px; background: rgba(255, 255, 255, 0.6);">
+    </div>
+
+    <button class="modal-btn" onclick="proceedToPayment()" style="background: linear-gradient(135deg, #6772e5 0%, #5b66d8 100%); box-shadow: 0 6px 20px rgba(103, 114, 229, 0.4); border-radius: 12px; padding: 14px 20px; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; color: white; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease;">
+      <i data-lucide="credit-card" style="width: 20px; height: 20px; stroke-width: 2.5;"></i>
+      PROCEDI AL PAGAMENTO
+    </button>
+    <button onclick="closeModal()" style="width:100%; margin-top:12px; background:none; border:none; text-decoration:underline; cursor:pointer; color: #6b1b3d; font-weight: 500;">Annulla</button>
+    
+    <p style="font-size: 11px; color: #6b1b3d; margin-top: 12px; line-height: 1.5; opacity: 0.8;">
+      Verrai reindirizzato a Stripe per completare il pagamento in modo sicuro. Dopo il pagamento, il tuo memoriale sarà creato automaticamente.
+    </p>
+  </div>
+</div>
+
+<!-- Modal per visualizzare tomba -->
+<div id="view-modal">
+  <div class="modal-content">
+    <h3 id="view-name" style="margin-top:0;color:#263238;text-transform:uppercase;">NOME</h3>
+    <div id="view-photo-container">
+      <img id="view-photo" src="" alt="Foto Ricordo">
+      <span id="view-no-photo-text" style="color:#90a4ae;font-size:12px;">Nessuna foto</span>
+    </div>
+    <p id="view-date" style="font-weight:bold;color:#455a64;margin:5px 0;">1900-2000</p>
+    <p id="view-epitaph" style="font-style:italic;color:#37474f;font-size:14px;margin:10px 0;">"Qui riposa in pace..."</p>
+    <button class="view-close-btn" onclick="closeViewModal()">CHIUDI</button>
+  </div>
+</div>
+
+<!-- Splash Screen -->
+<div id="splash-screen">
+  <div class="splash-hero">
+    <!-- Zampe decorative sparse -->
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 8%; left: 10%; width: 28px; height: 28px; animation-delay: 0s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 15%; right: 12%; width: 24px; height: 24px; animation-delay: 0.5s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 25%; left: 8%; width: 20px; height: 20px; animation-delay: 1s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 30%; right: 15%; width: 26px; height: 26px; animation-delay: 1.5s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 85%; left: 15%; width: 22px; height: 22px; animation-delay: 2s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 88%; right: 18%; width: 25px; height: 25px; animation-delay: 2.5s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 12%; left: 25%; width: 18px; height: 18px; animation-delay: 3s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 20%; right: 25%; width: 22px; height: 22px; animation-delay: 3.5s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 18%; left: 5%; width: 24px; height: 24px; animation-delay: 0.3s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 35%; right: 8%; width: 20px; height: 20px; animation-delay: 0.8s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 28%; left: 18%; width: 22px; height: 22px; animation-delay: 1.3s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 80%; left: 8%; width: 26px; height: 26px; animation-delay: 1.8s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 92%; right: 10%; width: 20px; height: 20px; animation-delay: 2.3s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 10%; right: 20%; width: 18px; height: 18px; animation-delay: 2.8s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 22%; left: 12%; width: 24px; height: 24px; animation-delay: 3.3s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 83%; right: 25%; width: 22px; height: 22px; animation-delay: 3.8s;"></i>
+    
+    <div class="splash-top">
+      <p class="splash-text">
+        Stai entrando in un progetto nato dal cuore.<br><br>
+        <strong>Pethernity</strong> è uno spazio digitale, sereno e personale, per onorare con noi la memoria del tuo animale. Un luogo per raccogliere i ricordi più cari, dove sentirvi ancora vicini.<br><br>
+        Acquista uno spazio permanente nel nostro cimitero digitale e crea il tuo memoriale personale. 💳
+      </p>
+      <button class="splash-enter-btn" onclick="enterSite()" style="margin-top: 20px;">ENTRA</button>
+    </div>
+    <div class="splash-scroll-hint" onclick="this.closest('#splash-screen').scrollTo({top:window.innerHeight,behavior:'smooth'})">&#x25BC;</div>
+  </div>
+  <div class="splash-page2" style="justify-content:flex-start; padding-top:40px; padding-bottom:0; align-items:center; position:relative;">
+    <!-- Cuori decorativi nello sfondo -->
+    <i data-lucide="heart" class="heart-decoration" style="top: 8%; left: 15%; width: 40px; height: 40px; animation-delay: 0s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 12%; right: 18%; width: 35px; height: 35px; animation-delay: 0.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 20%; left: 8%; width: 30px; height: 30px; animation-delay: 1s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 25%; right: 12%; width: 45px; height: 45px; animation-delay: 1.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 35%; left: 20%; width: 38px; height: 38px; animation-delay: 2s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 40%; right: 22%; width: 32px; height: 32px; animation-delay: 2.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 55%; left: 10%; width: 42px; height: 42px; animation-delay: 3s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 60%; right: 15%; width: 36px; height: 36px; animation-delay: 3.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 70%; left: 25%; width: 34px; height: 34px; animation-delay: 4s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 75%; right: 20%; width: 40px; height: 40px; animation-delay: 4.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 85%; left: 12%; width: 38px; height: 38px; animation-delay: 5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 90%; right: 10%; width: 35px; height: 35px; animation-delay: 5.5s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 15%; left: 30%; width: 28px; height: 28px; animation-delay: 0.3s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 45%; right: 8%; width: 33px; height: 33px; animation-delay: 1.8s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 65%; left: 5%; width: 37px; height: 37px; animation-delay: 3.3s;"></i>
+    <i data-lucide="heart" class="heart-decoration" style="top: 80%; right: 28%; width: 31px; height: 31px; animation-delay: 4.8s;"></i>
+    
+    <!-- Immagine che scivola da sinistra -->
+    <img src="fotos.webp" alt="Fotos" class="slide-from-right">
+    
+    <!-- Zampe decorative sparse nella pagina 2 -->
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 5%; left: 8%; width: 24px; height: 24px; animation-delay: 0.2s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 10%; right: 10%; width: 20px; height: 20px; animation-delay: 0.7s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 70%; left: 12%; width: 26px; height: 26px; animation-delay: 1.2s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 75%; right: 14%; width: 22px; height: 22px; animation-delay: 1.7s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 85%; left: 20%; width: 18px; height: 18px; animation-delay: 2.2s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 90%; right: 22%; width: 24px; height: 24px; animation-delay: 2.7s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 8%; left: 18%; width: 22px; height: 22px; animation-delay: 0.4s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 12%; right: 20%; width: 20px; height: 20px; animation-delay: 0.9s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 15%; left: 5%; width: 26px; height: 26px; animation-delay: 1.4s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 68%; right: 8%; width: 24px; height: 24px; animation-delay: 1.9s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 78%; left: 8%; width: 20px; height: 20px; animation-delay: 2.4s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 82%; right: 18%; width: 22px; height: 22px; animation-delay: 2.9s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 88%; left: 15%; width: 24px; height: 24px; animation-delay: 3.4s;"></i>
+    <i data-lucide="paw-print" class="paw-decoration" style="top: 92%; right: 12%; width: 20px; height: 20px; animation-delay: 3.9s;"></i>
+    
+    <img src="intro.webp" alt="Intro" style="max-width:55%; max-height:35vh; object-fit:contain; border-radius:12px;">
+    <div style="max-width:620px; width:90%; margin-top:30px; text-align:center;">
+      <p style="font-family:'Oswald', sans-serif; color:#2e7d32; font-size:clamp(22px,5vw,32px); font-weight:700; line-height:1.5; margin:0 0 12px 0; letter-spacing:1px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+        <i data-lucide="dog" style="width: 32px; height: 32px; stroke-width: 2.5;"></i>
+        <span class="underline-animation">UNISCITI ALLA COMMUNITY</span>
+        <i data-lucide="dog" style="width: 32px; height: 32px; stroke-width: 2.5;"></i>
+      </p>
+      <p style="font-family:'Lora','Georgia',serif; color:#4a5568; font-size:clamp(14px,3vw,17px); line-height:1.7; margin:0 0 20px 0;">
+        Acquista uno spazio nel cimitero digitale e crea un memoriale permanente per commemorare il tuo amico per sempre!
+      </p>
+      <div class="stripe-box">
+        <i data-lucide="credit-card" class="stripe-box-text" style="width: 20px; height: 20px; stroke-width: 2.5; color: #6772e5;"></i>
+        <span class="stripe-box-text" style="font-family:'Lora','Georgia',serif; font-size:clamp(13px,2.8vw,15px); font-weight: 600; color: #6772e5;">
+          Pagamento sicuro tramite Stripe
+        </span>
+      </div>
+    </div>
+    <img src="bau.webp" alt="Bau" style="width:90%; max-width:500px; flex:1; object-fit:contain; margin-top:20px; margin-bottom:0;">
+  </div>
+  <div class="splash-footer">
+    <span>&copy; 2026 Pethernity &ndash; Tutti i diritti riservati</span>
+    <span class="splash-footer-sep">|</span>
+    <a href="#" onclick="event.preventDefault();document.getElementById('cookie-modal').style.display='flex';">Cookie Policy</a>
+    <span class="splash-footer-sep">|</span>
+    <a href="#" onclick="event.preventDefault();document.getElementById('privacy-modal').style.display='flex';">Privacy Policy</a>
+    <span class="splash-footer-sep">|</span>
+    <a href="#" onclick="event.preventDefault();document.getElementById('terms-modal').style.display='flex';">Termini e Condizioni</a>
+  </div>
+</div>
+
+<!-- Welcome Modal Pokémon-Style -->
+<div id="welcome-modal">
+  <div class="welcome-box">
+    <div class="welcome-avatar">
+      <div class="welcome-avatar-img">
+        <img src="circle.webp" alt="Pethernity">
+      </div>
+    </div>
+    <div class="welcome-text">
+      <strong><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>Benvenuto su Pethernity!</strong><br><br>
+      Questo è un luogo speciale dove puoi onorare la memoria del tuo amico a quattro zampe.<br><br>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><strong>Esplora il cimitero</strong> trascinando la mappa<br>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg><strong>Torna al centro</strong> con il pulsante Home<br>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><strong>Acquista un memoriale</strong> cliccando su un buco verde 💳<br>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:6px;"><path d="M12 2L12 2C12 2 7 6 7 10C7 10 7 14 12 14C17 14 17 10 17 10C17 6 12 2 12 2Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 14C7 14 5 16 5 18C5 20 7 22 12 22C17 22 19 20 19 18C19 16 17 14 17 14" stroke-linecap="round" stroke-linejoin="round"/></svg><strong>Visita i memoriali</strong> creati dagli altri utenti<br><br>
+      I ricordi sono con noi.
+    </div>
+    <div class="welcome-footer">
+      <button class="welcome-btn" onclick="closeWelcome()">HO CAPITO!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Termini e Condizioni -->
+<div id="terms-modal">
+  <div class="terms-box">
+    <div class="terms-header">
+      <h3>TERMINI E CONDIZIONI</h3>
+      <button class="terms-close" onclick="document.getElementById('terms-modal').style.display='none';">&times;</button>
+    </div>
+    <div class="terms-body">
+      <h2>TERMINI E CONDIZIONI DI PETHERNITY</h2>
+      <p><strong>Ultimo aggiornamento:</strong> 16/02/2026</p>
+      
+      <h2>INFORMAZIONI PRECONTRATTUALI (art. 49 D.Lgs. 206/2005)</h2>
+      <p>Prima della conclusione dell'acquisto, l'Utente/Consumatore prende atto di ricevere in modo chiaro e comprensibile le seguenti informazioni:</p>
+
+      <h2>1. DEFINIZIONI</h2>
+      <ul>
+        <li><strong>PETHERNITY</strong> – Il sito web e il servizio digitale offerto, accessibile all'indirizzo www.pethernity.com.</li>
+        <li><strong>UTENTE</strong> – Qualsiasi persona fisica che accede al sito e/o utilizza i servizi di PETHERNITY.</li>
+        <li><strong>TRIBUTO</strong> – La pagina digitale dedicata a un animale domestico, creata dall'Utente all'interno della piattaforma.</li>
+        <li><strong>CONTENUTI</strong> – Qualsiasi materiale caricato dall'Utente, inclusi a titolo esemplificativo: testi, fotografie, video, dediche, messaggi.</li>
+      </ul>
+
+      <h2>2. NATURA DEL SERVIZIO</h2>
+      <p><strong>Natura "posizione nel mondo di Pethernity" e durata:</strong> l'acquisto consente all'Utente di ottenere una posizione/spazio digitale nel mondo PETHERNITY associato al Tributo; tale spazio è destinato a restare disponibile finché la piattaforma rimane attiva (non è tecnicamente garantibile una disponibilità "per sempre" indipendentemente dall'esistenza della piattaforma).</p>
+      <p><strong>PETHERNITY NON È:</strong></p>
+      <ul>
+        <li>Un'agenzia di onoranze funebri</li>
+        <li>Un servizio veterinario</li>
+        <li>Un'impresa di servizi cimiteriali fisici</li>
+        <li>Un'entità religiosa o associativa</li>
+        <li>Un professionista del supporto al lutto</li>
+      </ul>
+
+      <h2>3. COSTI E PAGAMENTI</h2>
+      <p><strong>3.1 Trasparenza dei prezzi</strong><br>
+      Tutti i costi relativi ai servizi offerti da PETHERNITY sono esplicitamente indicati all'interno della piattaforma, nelle sezioni dedicate alla creazione e personalizzazione del Tributo. I prezzi visualizzati al momento dell'acquisto sono quelli applicabili.</p>
+
+      <p><strong>3.2 Costo iniziale</strong><br>
+      La creazione di un Tributo ha un costo iniziale di <strong>15,00 €</strong> (quindici euro). Tale importo dà diritto all'attivazione dello spazio digitale dedicato all'animale e alla possibilità di personalizzarlo secondo le opzioni disponibili.</p>
+
+      <p><strong>3.3 Elementi aggiuntivi</strong><br>
+      Eventuali elementi aggiuntivi o decorazioni digitali (inclusi a titolo esemplificativo: foto supplementari, candele virtuali, messaggi in evidenza, fiori virtuali, certificati digitali) hanno costi separati, sempre chiaramente esposti al momento della selezione.</p>
+
+      <p><strong>3.4 Accettazione</strong><br>
+      Ogni acquisto effettuato su PETHERNITY comporta l'accettazione integrale e incondizionata dei presenti Termini e Condizioni. L'Utente è tenuto a leggere attentamente queste condizioni prima di procedere con qualsiasi pagamento.</p>
+
+      <p><strong>3.5 Nessun rimborso</strong><br>
+      Trattandosi di servizi digitali attivati immediatamente al momento dell'acquisto, non sono previsti rimborsi una volta completata la transazione. Eventuali problemi tecnici vanno segnalati all'indirizzo pethernity@gmail.com per una valutazione.</p>
+      <p>Trattandosi di contenuto digitale non fornito su supporto materiale ed eseguito immediatamente dopo il pagamento, il diritto di recesso non si applica ai sensi dell'art. 59, lettera o) del Codice del Consumo, a condizione che l'Utente:</p>
+      <ul>
+        <li>abbia espressamente acconsentito all'esecuzione immediata del servizio;</li>
+        <li>abbia dichiarato di conoscere la conseguente perdita del diritto di recesso.</li>
+      </ul>
+      <p>Procedendo con il pagamento, l'Utente presta tale consenso e rilascia tale dichiarazione.</p>
+      <p>Eventuali problemi tecnici vanno segnalati all'indirizzo pethernity@gmail.com per una valutazione.</p>
+
+      <p><strong>3.6 Modalità di Pagamento</strong><br>
+      I pagamenti sono gestiti tramite Stripe; i metodi disponibili sono quelli resi di volta in volta disponibili da Stripe al momento del checkout (es. Carte di Credito/Debito, Apple Pay, Google Pay o metodi locali, se attivi). PETHERNITY non memorizza i dati completi della carta.</p>
+
+      <h2>4. DURATA DEL TRIBUTO</h2>
+      <p>Il Tributo creato dall'Utente rimarrà attivo e accessibile per tutto il periodo in cui PETHERNITY manterrà attiva la piattaforma.</p>
+      <p>PETHERNITY non garantisce la permanenza illimitata del servizio e si riserva il diritto di sospendere o dismettere la piattaforma in qualsiasi momento, con preavviso comunicato agli Utenti via email o tramite avviso sul sito.</p>
+      <p>In caso di cessazione definitiva del servizio, PETHERNITY fornirà un preavviso di almeno <strong>90 giorni</strong> e metterà a disposizione dell'Utente la possibilità di esportare i Contenuti del Tributo in formato digitale standard (es. file ZIP o PDF). Nessun rimborso sarà dovuto per i pagamenti già effettuati.</p>
+
+      <h2>5. RESPONSABILITÀ DELL'UTENTE</h2>
+      <p>L'Utente è l'unico e esclusivo responsabile di:</p>
+      <ul>
+        <li>Tutti i Contenuti caricati all'interno del Tributo</li>
+        <li>La liceità, veridicità e accuratezza delle informazioni inserite</li>
+        <li>Il possesso dei diritti relativi a foto, testi e materiali pubblicati (inclusi i diritti di proprietà intellettuale e i diritti all'immagine di terzi)</li>
+        <li>L'eventuale condivisione del Tributo con terze persone</li>
+      </ul>
+      <p>L'Utente manleva fin d'ora PETHERNITY da qualsiasi richiesta di risarcimento, azione legale o pretesa avanzata da terzi in relazione ai Contenuti pubblicati.</p>
+
+      <h2>6. LIMITAZIONE DI RESPONSABILITÀ</h2>
+      <p>6.1 PETHERNITY si impegna a fornire il servizio con diligenza e professionalità. Tuttavia, entro i limiti consentiti dalla normativa applicabile (in particolare dagli artt. 1229 c.c. e 33-36 Codice del Consumo), la responsabilità di PETHERNITY è limitata come segue:</p>
+      <p>a) PETHERNITY non risponde dei danni indiretti, consequenziali, lucri cessanti, perdita di chance o danni punitivi, salvo dolo o colpa grave.</p>
+      <p>b) La responsabilità complessiva di PETHERNITY per danni diretti derivanti dall'uso del servizio è in ogni caso limitata all'importo effettivamente pagato dall'Utente per il Tributo nell'ultimo anno (o, se superiore, al costo iniziale del Tributo).</p>
+      <p>c) PETHERNITY non è responsabile per:</p>
+      <ul>
+        <li>interruzioni temporanee del servizio dovute a manutenzione programmata (comunicata con ragionevole preavviso), forza maggiore, problemi di connettività dell'Utente o eventi al di fuori del proprio controllo;</li>
+        <li>perdita di dati o contenuti causata da eventi di forza maggiore o da attacchi informatici non imputabili a grave negligenza di PETHERNITY;</li>
+        <li>uso improprio della piattaforma da parte dell'Utente o di terzi;</li>
+        <li>contenuti caricati dagli Utenti.</li>
+      </ul>
+      <p>6.2 Il servizio è fornito secondo gli standard tecnici ragionevolmente attesi per una piattaforma digitale di questo tipo. PETHERNITY non garantisce l'assenza assoluta di errori o interruzioni.</p>
+
+      <h2>7. CONDOTTA DELL'UTENTE</h2>
+      <p>L'Utente si impegna a:</p>
+      <ul>
+        <li>Non pubblicare contenuti offensivi, violenti, discriminatori o illegali</li>
+        <li>Non violare i diritti di proprietà intellettuale di terzi</li>
+        <li>Non utilizzare la piattaforma per scopi commerciali non autorizzati</li>
+        <li>Non tentare di danneggiare, violare o interferire con il funzionamento del sito</li>
+      </ul>
+      <p>PETHERNITY si riserva il diritto di rimuovere senza preavviso qualsiasi Tributo o Contenuto che violi le presenti condizioni, senza che ciò comporti alcun obbligo di rimborso.</p>
+
+      <h2>8. PROPRIETÀ INTELLETTUALE</h2>
+      <p><strong>8.1 Piattaforma</strong><br>
+      Tutti gli elementi della piattaforma PETHERNITY (grafica, testi, struttura, codice) sono di proprietà esclusiva di PETHERNITY o dei rispettivi licenziatari e sono protetti dalle leggi sul diritto d'autore.</p>
+      <p><strong>8.2 Contenuti degli Utenti</strong><br>
+      L'Utente conserva tutti i diritti sui Contenuti caricati. Con la pubblicazione, l'Utente concede a PETHERNITY una licenza non esclusiva, gratuita e valida per tutta la durata del Tributo, limitata alla memorizzazione, visualizzazione e gestione dei Contenuti all'interno della piattaforma.</p>
+
+      <h2>9. PRIVACY E DATI PERSONALI</h2>
+      <p>I dati personali degli Utenti sono trattati nel rispetto della normativa applicabile (GDPR per l'Unione Europea). Per maggiori informazioni, si rinvia all'Informativa sulla Privacy disponibile sul sito.</p>
+      <p>PETHERNITY non vende i dati personali a terzi né li utilizza per finalità diverse dall'erogazione del servizio.</p>
+
+      <h2>10. COMUNICAZIONI</h2>
+      <p>Per qualsiasi comunicazione, richiesta o segnalazione, l'Utente può scrivere all'indirizzo email:</p>
+      <p><a href="mailto:pethernity@gmail.com" style="color:#5359e0;"><strong>pethernity@gmail.com</strong></a></p>
+      <p>Tutte le comunicazioni ufficiali da parte di PETHERNITY saranno inviate a questo stesso indirizzo o tramite avvisi pubblicati sul sito.</p>
+
+      <h2>11. FORO COMPETENTE E LEGGE APPLICABILE</h2>
+      <p>I presenti Termini e Condizioni sono regolati dalla <strong>legge italiana</strong>.</p>
+      <p>Per qualsiasi controversia dovesse sorgere in relazione all'interpretazione, esecuzione o validità dei presenti Termini, sarà esclusivamente competente il <strong>Foro di Reggio Emilia</strong>, con espressa esclusione di qualsiasi altro foro alternativo.</p>
+      <p>Qualora l'Utente risieda in un paese diverso dall'Italia, la competenza rimane comunque del Foro di Reggio Emilia per qualsiasi disputa legale.</p>
+
+      <h2>12. MODIFICHE AI TERMINI</h2>
+      <p>PETHERNITY si riserva il diritto di modificare i presenti Termini e Condizioni in qualsiasi momento, con effetto immediato per i nuovi Utenti e con preavviso ragionevole per gli Utenti già registrati.</p>
+      <p>L'uso continuato della piattaforma dopo le modifiche costituisce accettazione dei nuovi termini.</p>
+
+      <h2>13. DISPOSIZIONI FINALI</h2>
+      <p>Qualora una qualsiasi clausola dei presenti Termini dovesse essere ritenuta nulla o inefficace, le rimanenti clausole resteranno pienamente valide ed efficaci.</p>
+      <p>L'eventuale mancato esercizio da parte di PETHERNITY di un diritto previsto dai presenti Termini non costituisce rinuncia allo stesso.</p>
+
+      <div class="terms-footer-text">
+        <p><strong>Letto, compreso e accettato.</strong></p>
+        <p>Procedendo con l'acquisto, l'Utente dichiara di aver letto, compreso e accettato integralmente i presenti Termini e Condizioni.</p>
+        <p><strong>PETHERNITY</strong> – Un luogo per l'eternità del ricordo.<br>📧 pethernity@gmail.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Cookie Policy -->
+<div id="cookie-modal">
+  <div class="terms-box">
+    <div class="terms-header">
+      <h3>COOKIE POLICY</h3>
+      <button class="terms-close" onclick="document.getElementById('cookie-modal').style.display='none';">&times;</button>
+    </div>
+    <div class="terms-body">
+      <h2>Cookie Policy di pethernity.com</h2>
+
+      <h2>1. Che cosa sono i cookie</h2>
+      <p>Il presente documento descrive l'uso dei cookie e di tecnologie similari sul sito pethernity.com (di seguito, il "Sito").</p>
+      <p>I cookie sono piccoli file di testo che i siti visitati dall'utente inviano al suo dispositivo (computer, smartphone, tablet), dove vengono memorizzati per essere poi ritrasmessi agli stessi siti alla visita successiva.</p>
+      <p>I cookie permettono al Sito di funzionare in modo corretto e sicuro, nonché di memorizzare alcune preferenze dell'utente (per esempio la lingua o le credenziali di accesso alla propria area personale).</p>
+
+      <h2>2. Tipologie di cookie utilizzate dal Sito</h2>
+      <p>Sul Sito possono essere utilizzate le seguenti categorie di cookie:</p>
+      <p><strong>1. Cookie tecnici (strettamente necessari)</strong><br>
+      Sono i cookie necessari al funzionamento del Sito e all'erogazione dei servizi richiesti dall'utente (per esempio, la gestione dell'area riservata e del flusso di pagamento). Possono includere cookie impostati direttamente dal Sito o da terze parti che forniscono servizi tecnici essenziali.</p>
+      <p><strong>2. Cookie di funzionalità</strong><br>
+      Servono a ricordare alcune scelte dell'utente (ad esempio, dati di login per mantenere la sessione aperta) e a migliorare l'esperienza di navigazione.</p>
+      <p>Al momento il Sito non utilizza cookie per finalità di profilazione, marketing o statistica/analytics. Qualora in futuro venissero implementati cookie di tale natura, la presente Cookie Policy sarà aggiornata e, laddove richiesto, sarà raccolto il relativo consenso.</p>
+
+      <h2>3. Cookie di terze parti utilizzati</h2>
+      <p><strong>3.1. Stripe Checkout (pagamenti)</strong><br>
+      Per la gestione dei pagamenti, il Sito utilizza il servizio "Stripe Checkout" fornito da Stripe Payments Europe Limited e dalle altre società del gruppo Stripe.</p>
+      <p>Stripe, in qualità di terza parte, può installare cookie per finalità tecniche connesse all'erogazione del servizio di pagamento, inclusi strumenti di prevenzione e rilevazione di frodi, sicurezza delle transazioni e corretta gestione del checkout.</p>
+      <p>Tra questi possono rientrare, a titolo esemplificativo, cookie come <code>__stripe_sid</code> e <code>__stripe_mid</code>, utilizzati per identificare temporaneamente la sessione, prevenire attività fraudolente e garantire la sicurezza dei pagamenti.</p>
+      <p>Per ulteriori informazioni sui cookie utilizzati da Stripe e sui relativi periodi di conservazione, l'utente può consultare la pagina dedicata di Stripe:</p>
+      <ul>
+        <li>Cookie Policy / impostazioni cookie di Stripe: <a href="https://stripe.com/cookie-settings" target="_blank" style="color:#5359e0;">https://stripe.com/cookie-settings</a></li>
+        <li>Informazioni generali su cookie e sicurezza di Stripe: <a href="https://support.stripe.com/questions/cookies" target="_blank" style="color:#5359e0;">https://support.stripe.com/questions/cookies</a></li>
+      </ul>
+      <p>Stripe agisce come autonomo titolare del trattamento per le attività ad esso riferibili; per maggiori dettagli si rimanda alla sua informativa privacy.</p>
+
+      <p><strong>3.2. Firebase (hosting e backend)</strong><br>
+      Il Sito utilizza diversi servizi della piattaforma Firebase, fornita da Google LLC/Google Ireland Limited, per gestire autenticazione, database e archiviazione dei contenuti:</p>
+      <ul>
+        <li><strong>Firebase Authentication:</strong> gestione della registrazione e dell'accesso degli utenti (email e password).</li>
+        <li><strong>Cloud Firestore:</strong> database cloud utilizzato per memorizzare dati relativi agli utenti e ai contenuti (es. dati dell'animale, descrizioni).</li>
+        <li><strong>Cloud Storage:</strong> archiviazione di file, ad esempio foto caricate dagli utenti.</li>
+      </ul>
+      <p>L'uso di tali servizi può comportare l'installazione di cookie o tecnologie similari da parte di Google/Firebase, anche per fini tecnici di erogazione del servizio, sicurezza, gestione delle sessioni e bilanciamento del carico.</p>
+      <p>Per maggiori informazioni sulle modalità con cui Firebase gestisce i dati e sugli eventuali cookie/identificatori, l'utente può consultare la documentazione ufficiale e l'informativa privacy di Google:</p>
+      <ul>
+        <li>Firebase – informativa generale e documentazione: <a href="https://firebase.google.com/docs" target="_blank" style="color:#5359e0;">https://firebase.google.com/docs</a></li>
+        <li>Privacy e termini di Google: <a href="https://policies.google.com/privacy" target="_blank" style="color:#5359e0;">https://policies.google.com/privacy</a></li>
+      </ul>
+
+      <h2>4. Cookie di sessione e autenticazione utente</h2>
+      <p>L'accesso all'area riservata del Sito avviene tramite credenziali (email e password) gestite attraverso Firebase Authentication.</p>
+      <p>Per permettere all'utente di rimanere autenticato durante la navigazione, il Sito può utilizzare cookie di sessione e tecnologie similari (es. identificatori memorizzati nel browser) che consentono di riconoscere l'utente loggato e di associare la sessione alle sue azioni sul Sito.</p>
+      <p>Questi cookie hanno le seguenti caratteristiche generali:</p>
+      <ul>
+        <li>sono tecnici o di funzionalità, necessari al corretto funzionamento dell'area privata;</li>
+        <li>vengono in genere cancellati al termine della sessione di navigazione o dopo un periodo limitato;</li>
+        <li>non sono utilizzati per finalità di profilazione o marketing.</li>
+      </ul>
+
+      <h2>5. Base giuridica e obbligatorietà del conferimento</h2>
+      <p>L'uso di cookie tecnici e di funzionalità, strettamente necessari per permettere la navigazione sul Sito e la fruizione dei servizi (registrazione, login, gestione del profilo, utilizzo del checkout Stripe), si fonda sull'interesse legittimo del Titolare a garantire il corretto funzionamento del Sito e la sicurezza delle transazioni, nonché sull'esecuzione del contratto o di misure precontrattuali richieste dall'utente.</p>
+      <p>Il conferimento dei dati raccolti tramite tali cookie è necessario per visitare il Sito e utilizzare i servizi offerti; il mancato conferimento potrebbe impedire la navigazione o l'uso dell'area riservata e del sistema di pagamento.</p>
+      <p>Poiché il Sito non utilizza al momento cookie di profilazione o analytics, non è richiesto il consenso preventivo dell'utente per tali categorie.</p>
+
+      <h2>6. Gestione dei cookie da parte dell'utente</h2>
+      <p>L'utente può gestire le preferenze relative ai cookie direttamente tramite le impostazioni del proprio browser, impedendo – ad esempio – che terze parti possano installarne.</p>
+      <p>È possibile, in qualsiasi momento, cancellare i cookie già presenti sul dispositivo, modificare il livello di blocco di nuovi cookie, oppure impostare il browser per ricevere un avviso quando viene inviato un cookie.</p>
+      <p>Di seguito alcuni link alle pagine di supporto dei principali browser:</p>
+      <ul>
+        <li>Chrome: <a href="https://support.google.com/chrome/answer/95647" target="_blank" style="color:#5359e0;">https://support.google.com/chrome/answer/95647</a></li>
+        <li>Firefox: <a href="https://support.mozilla.org/it/kb/Gestione%20dei%20cookie" target="_blank" style="color:#5359e0;">https://support.mozilla.org/it/kb/Gestione dei cookie</a></li>
+        <li>Safari: <a href="https://support.apple.com/it-it/HT201265" target="_blank" style="color:#5359e0;">https://support.apple.com/it-it/HT201265</a></li>
+        <li>Edge: <a href="https://support.microsoft.com/it-it/help/4027947" target="_blank" style="color:#5359e0;">https://support.microsoft.com/it-it/help/4027947</a></li>
+      </ul>
+      <p>La disattivazione o il blocco di alcuni cookie tecnici potrebbe compromettere il corretto funzionamento del Sito e/o l'accesso all'area riservata e ai servizi di pagamento.</p>
+
+      <h2>7. Trasferimenti di dati verso paesi extra-UE</h2>
+      <p>L'utilizzo di Stripe e Firebase può comportare il trasferimento di dati verso paesi extra-UE (ad esempio, Stati Uniti).</p>
+      <p>Tali trasferimenti avvengono nel rispetto del Regolamento (UE) 2016/679 (GDPR), sulla base di adeguati strumenti di garanzia, quali clausole contrattuali standard approvate dalla Commissione europea e/o altri meccanismi di conformità adottati dai rispettivi fornitori.</p>
+      <p>Per maggiori informazioni sulle misure di protezione adottate, si invita l'utente a consultare le rispettive informative privacy di Stripe e Google/Firebase.</p>
+
+      <h2>8. Aggiornamenti della presente Cookie Policy</h2>
+      <p>La presente Cookie Policy potrà essere soggetta a modifiche nel tempo, in relazione all'evoluzione dei servizi offerti dal Sito o a cambiamenti normativi e tecnici.</p>
+      <p>In caso di modifiche sostanziali, sarà data adeguata evidenza sul Sito e, se necessario, verrà richiesto nuovamente il consenso per l'uso di determinate categorie di cookie.</p>
+
+      <div class="terms-footer-text">
+        <p><strong>Data di ultimo aggiornamento:</strong> 16/02/2026</p>
+        <p>📧 Email di contatto: pethernity@gmail.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modale Privacy Policy -->
+<div id="privacy-modal">
+  <div class="terms-box">
+    <div class="terms-header">
+      <h3>INFORMATIVA SULLA PRIVACY</h3>
+      <button class="terms-close" onclick="document.getElementById('privacy-modal').style.display='none';">&times;</button>
+    </div>
+    <div class="terms-body">
+      <h2>INFORMATIVA SULLA PRIVACY DI PETHERNITY</h2>
+      <p><strong>Ultimo aggiornamento:</strong> 16/02/2026</p>
+      <p>La presente Informativa sulla Privacy descrive le modalità di raccolta, trattamento e protezione dei dati personali degli utenti che visitano il sito web PETHERNITY (di seguito "Sito") e utilizzano i servizi offerti, in conformità al Regolamento (UE) 2016/679 (General Data Protection Regulation - GDPR) e alla normativa italiana vigente.</p>
+
+      <h2>1. TITOLARE DEL TRATTAMENTO</h2>
+      <p>Il Titolare del trattamento dei dati personali raccolti tramite questo sito è:</p>
+      <p><strong>PETHERNITY</strong><br>Email: <a href="mailto:pethernity@gmail.com" style="color:#5359e0;">pethernity@gmail.com</a></p>
+      <p>Il Titolare è responsabile della determinazione delle finalità e dei mezzi del trattamento dei dati personali.</p>
+
+      <h2>2. DATI PERSONALI RACCOLTI</h2>
+      <p><strong>2.1 Dati forniti volontariamente dall'utente</strong></p>
+      <p>Raccogliamo i dati personali che l'utente fornisce volontariamente quando:</p>
+      <ul>
+        <li>Crea un Tributo per il proprio animale</li>
+        <li>Effettua un acquisto (pagamento di 15 € o elementi aggiuntivi)</li>
+        <li>Compila un modulo di contatto o invia un'email all'indirizzo pethernity@gmail.com</li>
+        <li>Si registra alla piattaforma</li>
+      </ul>
+      <p>Tali dati possono includere:</p>
+      <ul>
+        <li>Nome e cognome</li>
+        <li>Indirizzo email</li>
+        <li>Eventuali altri dati inseriti nei campi del modulo o nelle comunicazioni</li>
+      </ul>
+
+      <p><strong>2.2 Dati di navigazione</strong></p>
+      <p>I sistemi informatici e le procedure software preposte al funzionamento del Sito acquisiscono, nel corso del loro normale esercizio, alcuni dati personali la cui trasmissione è implicita nell'uso dei protocolli di comunicazione di Internet.</p>
+      <p>Si tratta di informazioni che non sono raccolte per essere associate a interessati identificati, ma che per loro stessa natura potrebbero, attraverso elaborazioni ed associazioni con dati detenuti da terzi, permettere di identificare gli utenti. In questa categoria rientrano:</p>
+      <ul>
+        <li>Indirizzi IP</li>
+        <li>Nomi a dominio dei computer utilizzati</li>
+        <li>URI (Uniform Resource Identifier) delle risorse richieste</li>
+        <li>Orario della richiesta</li>
+        <li>Metodo utilizzato nel sottoporre la richiesta al server</li>
+        <li>Dimensione del file ottenuto in risposta</li>
+        <li>Codice numerico indicante lo stato della risposta</li>
+        <li>Altri parametri relativi al sistema operativo e all'ambiente informatico dell'utente</li>
+      </ul>
+      <p>Questi dati vengono utilizzati al solo fine di ricavare informazioni statistiche anonime sull'uso del Sito e per controllarne il corretto funzionamento. I dati potrebbero essere utilizzati per l'accertamento di responsabilità in caso di ipotetici reati informatici ai danni del Sito.</p>
+
+      <p><strong>2.3 Cookie e tecnologie simili</strong></p>
+      <p>Il Sito utilizza cookie e tecnologie di tracciamento analoghe. Per tutte le informazioni dettagliate sull'uso dei cookie, sulle loro tipologie e sulle modalità per gestire le preferenze, l'utente è invitato a consultare la Cookie Policy disponibile sul Sito.</p>
+      <p>In ottemperanza alla normativa, per i cookie non tecnici viene richiesto il preventivo consenso dell'utente.</p>
+
+      <h2>3. FINALITÀ DEL TRATTAMENTO E BASE GIURIDICA</h2>
+      <p>I dati personali dell'utente sono trattati per le seguenti finalità:</p>
+      <p><strong>Erogazione del servizio:</strong> creazione e gestione del Tributo, gestione pagamenti, assistenza<br>
+      <em>Base Giuridica:</em> Esecuzione di un contratto di cui l'interessato è parte (Art. 6.1.b GDPR)<br>
+      <em>Dati trattati:</em> Nome, email, dati di pagamento</p>
+
+      <p><strong>Riscontro a richieste:</strong> risposta a domande inviate via email o modulo contatti<br>
+      <em>Base Giuridica:</em> Esecuzione di misure precontrattuali adottate su richiesta dell'interessato (Art. 6.1.b GDPR)<br>
+      <em>Dati trattati:</em> Nome, email, contenuto della richiesta</p>
+
+      <p><strong>Adempimento obblighi di legge:</strong> gestione contabile, fiscale, amministrativa<br>
+      <em>Base Giuridica:</em> Obbligo legale (Art. 6.1.c GDPR)<br>
+      <em>Dati trattati:</em> Dati amministrativi e contabili</p>
+
+      <p><strong>Miglioramento del servizio:</strong> analisi statistiche anonime, sicurezza del Sito<br>
+      <em>Base Giuridica:</em> Legittimo interesse del Titolare (Art. 6.1.f GDPR)<br>
+      <em>Dati trattati:</em> Dati di navigazione anonimizzati</p>
+
+      <p><strong>Comunicazioni di servizio:</strong> aggiornamenti su modifiche del Sito o dei Termini<br>
+      <em>Base Giuridica:</em> Esecuzione del contratto (Art. 6.1.b GDPR)<br>
+      <em>Dati trattati:</em> Email</p>
+
+      <p>Non vengono effettuate attività di marketing, profilazione o cessione dei dati a terzi per scopi commerciali.</p>
+
+      <h2>4. NATURA DEL CONFERIMENTO E CONSEGUENZE DEL RIFIUTO</h2>
+      <p>Il conferimento dei dati per le finalità di cui al punto 3 (erogazione servizi, gestione pagamenti, riscontro richieste) è necessario per poter usufruire dei servizi di PETHERNITY.</p>
+      <p>L'eventuale rifiuto di conferire tali dati contrassegnati come obbligatori comporta l'impossibilità per PETHERNITY di:</p>
+      <ul>
+        <li>Creare e gestire il Tributo richiesto</li>
+        <li>Elaborare i pagamenti</li>
+        <li>Fornire assistenza o rispondere alle richieste</li>
+      </ul>
+      <p>Il conferimento di ulteriori dati, non contrassegnati come essenziali, è facoltativo e non comporta alcuna conseguenza in ordine al perseguimento della finalità principale della raccolta.</p>
+
+      <h2>5. MODALITÀ DEL TRATTAMENTO E CONSERVAZIONE</h2>
+      <p>Il trattamento dei dati personali è realizzato per mezzo di operazioni o complessi di operazioni: raccolta, registrazione, organizzazione, conservazione, consultazione, elaborazione, modificazione, selezione, estrazione, raffronto, utilizzo, interconnessione, blocco, comunicazione, cancellazione e distruzione dei dati.</p>
+      <p>I dati sono trattati con modalità prevalentemente elettroniche e telematiche, nel rispetto dei principi di correttezza, liceità, trasparenza, riservatezza e con l'adozione di misure di sicurezza adeguate a prevenire l'accesso non autorizzato, la divulgazione, la modifica o la distruzione dei dati.</p>
+      
+      <p><strong>Periodo di conservazione:</strong></p>
+      <ul>
+        <li>I dati personali sono conservati per il tempo strettamente necessario al perseguimento delle finalità per cui sono stati raccolti.</li>
+        <li>I dati relativi al Tributo restano conservati per tutta la durata di attivazione della pagina, come indicato nei Termini e Condizioni.</li>
+        <li>I dati amministrativi e contabili sono conservati per il periodo previsto dalla legge (10 anni).</li>
+        <li>I dati di navigazione vengono cancellati immediatamente dopo l'elaborazione e comunque entro 7 giorni.</li>
+        <li>Decorsi i termini di conservazione, i dati saranno cancellati, distrutti o anonimizzati in modo permanente.</li>
+      </ul>
+
+      <h2>6. DESTINATARI E COMUNICAZIONE DEI DATI</h2>
+      <p>I dati personali potranno essere comunicati a:</p>
+      <ul>
+        <li>Soggetti che svolgono funzioni necessarie e strumentali all'erogazione del servizio (es. fornitori di servizi di hosting, piattaforme di pagamento, servizi di assistenza email)</li>
+        <li>Autorità giudiziarie o amministrative, per l'adempimento di obblighi di legge</li>
+      </ul>
+      <p>I soggetti sopra elencati operano, a seconda dei casi, in qualità di responsabili del trattamento nominati dal Titolare o di titolari autonomi del trattamento.</p>
+      <p>I dati non vengono diffusi, venduti o ceduti a terzi per finalità di marketing o pubblicitarie.</p>
+      <p>Qualora vengano utilizzati servizi di terze parti che comportano il trasferimento di dati al di fuori dell'Unione Europea, PETHERNITY garantisce che tale trasferimento avvenga nel rispetto delle garanzie appropriate previste dal GDPR (es. Clausole Contrattuali Standard).</p>
+
+      <h2>7. DIRITTI DELL'INTERESSATO</h2>
+      <p>Ai sensi degli Articoli da 15 a 22 del GDPR, l'utente ha il diritto di:</p>
+      <ul>
+        <li><strong>Accesso:</strong> ottenere la conferma che sia o meno in corso un trattamento di dati personali che lo riguardano e, in tal caso, ricevere informazioni sul trattamento (Art. 15)</li>
+        <li><strong>Rettifica:</strong> ottenere la correzione dei dati personali inesatti che lo riguardano (Art. 16)</li>
+        <li><strong>Cancellazione (diritto all'oblio):</strong> ottenere la cancellazione dei dati personali che lo riguardano, senza ingiustificato ritardo, nei casi previsti (Art. 17)</li>
+        <li><strong>Limitazione:</strong> ottenere la limitazione del trattamento, nei casi previsti (Art. 18)</li>
+        <li><strong>Portabilità:</strong> ricevere i dati personali che lo riguardano in un formato strutturato, di uso comune e leggibile da dispositivo automatico, e ha il diritto di trasmetterli ad altro titolare (Art. 20)</li>
+        <li><strong>Opposizione:</strong> opporsi al trattamento dei dati personali che lo riguardano, salvo che sussistano motivi legittimi per procedere al trattamento (Art. 21)</li>
+      </ul>
+      <p>L'utente ha inoltre il diritto di revocare il consenso in qualsiasi momento, senza pregiudicare la liceità del trattamento basata sul consenso prestato prima della revoca.</p>
+
+      <p><strong>Modalità di esercizio dei diritti:</strong><br>
+      L'utente può esercitare i propri diritti in qualsiasi momento inviando una richiesta all'indirizzo email: <a href="mailto:pethernity@gmail.com" style="color:#5359e0;">pethernity@gmail.com</a></p>
+      <p>PETHERNITY provvederà a rispondere entro i termini previsti dalla legge (di norma 30 giorni).</p>
+
+      <p><strong>Diritto di proporre reclamo:</strong><br>
+      L'utente ha il diritto di proporre reclamo all'autorità di controllo competente (in Italia, il Garante per la Protezione dei Dati Personali - <a href="https://www.garanteprivacy.it" target="_blank" style="color:#5359e0;">www.garanteprivacy.it</a>) qualora ritenga che il trattamento dei propri dati violi il GDPR.</p>
+
+      <h2>8. MODIFICHE ALL'INFORMATIVA</h2>
+      <p>PETHERNITY si riserva il diritto di modificare o aggiornare la presente Informativa sulla Privacy in qualsiasi momento, anche per adeguarla a eventuali modifiche normative o di servizio.</p>
+      <p>Le modifiche saranno notificate agli utenti tramite pubblicazione sul Sito e, per le variazioni sostanziali, tramite email agli utenti registrati. La data dell'ultimo aggiornamento è sempre riportata all'inizio del documento.</p>
+      <p>Si invita l'utente a consultare periodicamente questa pagina per essere sempre informato sulle modalità di trattamento dei dati personali.</p>
+
+      <h2>9. CONTATTI</h2>
+      <p>Per qualsiasi domanda, richiesta o esercizio dei diritti relativi alla presente Informativa sulla Privacy, è possibile contattare PETHERNITY al seguente indirizzo email:</p>
+      <p><a href="mailto:pethernity@gmail.com" style="color:#5359e0;">pethernity@gmail.com</a></p>
+
+      <div class="terms-footer-text">
+        <p><strong>PETHERNITY</strong> – Un luogo per l'eternità del ricordo.</p>
+        <p>📧 pethernity@gmail.com</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPT FIREBASE SEMPLIFICATO (Solo Firestore, NO Auth) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, increment, collection, query, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC5p224UMGY3q225-P44Fpp4npzEHPIpBE",
+    authDomain: "pixelmeadow-9cf1a.firebaseapp.com",
+    projectId: "pixelmeadow-9cf1a",
+    storageBucket: "pixelmeadow-9cf1a.firebasestorage.app",
+    messagingSenderId: "447283321975",
+    appId: "1:447283321975:web:d57be095f123dc72a33a72",
+    measurementId: "G-MB9F30YCX9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // === GLOBALS ===
+  let selectedHole = null;
+  let gravesData = {};
+  let population = 0;
+  let zoomLevel = 0.9; // Zoom iniziale ottimale per vedere il tempio e l'area circostante
+
+  const modal = document.getElementById('grave-modal');
+  const inpName = document.getElementById('grave-name');
+  const inpDate = document.getElementById('grave-date');
+  const inpText = document.getElementById('grave-text');
+  const inpPhoto = document.getElementById('grave-photo-input');
+  const viewport = document.getElementById('viewport');
+  const world = document.getElementById('world');
+  const viewModal = document.getElementById('view-modal');
+  const viewPhoto = document.getElementById('view-photo');
+  const viewNoPhotoText = document.getElementById('view-no-photo-text');
+
+  // === SPLASH SCREEN ===
+  window.enterSite = function() {
+    const splash = document.getElementById('splash-screen');
+    
+    // Avvia automaticamente la musica quando si entra nel sito
+    const backgroundMusic = document.getElementById('background-music');
+    const musicBtn = document.getElementById('music-btn');
+    
+    // Prova ad avviare la musica
+    backgroundMusic.play().then(() => {
+      // Musica avviata con successo
+      musicPlaying = true;
+      if (musicBtn) {
+        musicBtn.classList.add('playing');
+        musicBtn.title = 'Metti in pausa';
+        const icon = musicBtn.querySelector('i');
+        if (icon) {
+          icon.setAttribute('data-lucide', 'volume-2');
+          lucide.createIcons();
+        }
+      }
+    }).catch(err => {
+      // Autoplay bloccato dal browser - musica rimarrà spenta
+      console.log('Autoplay bloccato dal browser:', err);
+      musicPlaying = false;
+    });
+    
+    splash.style.transition = 'opacity 0.5s ease';
+    splash.style.opacity = '0';
+    // Cambia theme-color al verde della mappa per la status bar di Safari iOS
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#7cbd59');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      // Mostra il messaggio di benvenuto stile Pokémon
+      document.getElementById('welcome-modal').style.display = 'flex';
+    }, 500);
+  }
+
+  // === WELCOME MODAL ===
+  window.closeWelcome = function() {
+    const welcome = document.getElementById('welcome-modal');
+    welcome.style.transition = 'opacity 0.3s ease';
+    welcome.style.opacity = '0';
+    setTimeout(() => {
+      welcome.style.display = 'none';
+      // Centra la camera sull'origine (tempio)
+      camX = 0;
+      camY = 0;
+      update();
+    }, 300);
+  }
+
+  // === INFINITE MAP ENGINE ===
+  const CELL = 160;
+  const HOLE_W = 50;
+  const TEMPLE_R = 300;
+  const CHUNK = 5;
+  // Camera centrata sull'origine (tempio)
+  let camX = 0, camY = 0;
+  let genChunks = {};
+  let holeEls = {};
+  let holeBuckets = {};
+  const BUCKET_SZ = 200;
+
+  // Tempio al centro (offset per centrare visivamente l'immagine)
+  const temple = document.getElementById('temple');
+  temple.style.left = '-110px';
+  temple.style.top = '-195px';
+
+  // Seeded hash
+  function hsh(a, b, s) {
+    let h = s | 0;
+    h = (h * 2654435761 + a * 374761393) | 0;
+    h = (h * 2654435761 + b * 668265263) | 0;
+    h = ((h ^ (h >>> 13)) * 1274126177) | 0;
+    return (h ^ (h >>> 16)) >>> 0;
+  }
+  function srand(a, b, s) { return (hsh(a, b, s) % 10000) / 10000; }
+
+  function inTemple(x, y) { return Math.abs(x) < TEMPLE_R && Math.abs(y) < TEMPLE_R; }
+
+  function registerHole(x, y) {
+    const bx = Math.floor(x / BUCKET_SZ), by = Math.floor(y / BUCKET_SZ);
+    const bk = bx + ',' + by;
+    if (!holeBuckets[bk]) holeBuckets[bk] = [];
+    holeBuckets[bk].push({ x, y });
+  }
+
+  function tooCloseToAnyHole(px, py, minDist) {
+    const md2 = minDist * minDist;
+    const bx0 = Math.floor((px - minDist) / BUCKET_SZ);
+    const bx1 = Math.floor((px + minDist) / BUCKET_SZ);
+    const by0 = Math.floor((py - minDist) / BUCKET_SZ);
+    const by1 = Math.floor((py + minDist) / BUCKET_SZ);
+    for (let by = by0; by <= by1; by++) {
+      for (let bx = bx0; bx <= bx1; bx++) {
+        const arr = holeBuckets[bx + ',' + by];
+        if (!arr) continue;
+        for (let i = 0; i < arr.length; i++) {
+          const dx = px - arr[i].x, dy = py - arr[i].y;
+          if (dx * dx + dy * dy < md2) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  let decorBuckets = {};
+  const DECOR_BUCKET = 150;
+
+  function registerDecor(x, y, radius) {
+    const bx = Math.floor(x / DECOR_BUCKET), by = Math.floor(y / DECOR_BUCKET);
+    const bk = bx + ',' + by;
+    if (!decorBuckets[bk]) decorBuckets[bk] = [];
+    decorBuckets[bk].push({ x, y, r: radius });
+  }
+
+  function tooCloseToAnyDecor(px, py, minDist) {
+    const bx0 = Math.floor((px - minDist) / DECOR_BUCKET);
+    const bx1 = Math.floor((px + minDist) / DECOR_BUCKET);
+    const by0 = Math.floor((py - minDist) / DECOR_BUCKET);
+    const by1 = Math.floor((py + minDist) / DECOR_BUCKET);
+    for (let by = by0; by <= by1; by++) {
+      for (let bx = bx0; bx <= bx1; bx++) {
+        const arr = decorBuckets[bx + ',' + by];
+        if (!arr) continue;
+        for (let i = 0; i < arr.length; i++) {
+          const dx = px - arr[i].x, dy = py - arr[i].y;
+          const need = minDist + arr[i].r;
+          if (dx * dx + dy * dy < need * need) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function createPixelFlower(size, colorIdx) {
+    const colors = [
+      { petal: '#ff6b9d', center: '#ffd93d' },      // Rosa-giallo brillante
+      { petal: '#a29bfe', center: '#ffeaa7' },      // Lavanda-giallo
+      { petal: '#fd79a8', center: '#ffffff' },      // Rosa chiaro-bianco
+      { petal: '#ff7675', center: '#fdcb6e' },      // Rosso corallo-arancione
+      { petal: '#74b9ff', center: '#ffeaa7' },      // Azzurro-giallo
+      { petal: '#a29bfe', center: '#ffffff' },      // Viola-bianco
+      { petal: '#fd79a8', center: '#ffeaa7' },      // Rosa-giallo
+      { petal: '#00cec9', center: '#fdcb6e' },      // Turchese-arancione
+      { petal: '#ffa502', center: '#ffffff' },      // Arancione-bianco
+      { petal: '#ff6348', center: '#ffd93d' },      // Rosso-giallo
+      { petal: '#e056fd', center: '#ffeaa7' },      // Magenta-giallo
+      { petal: '#55efc4', center: '#ffffff' }       // Verde menta-bianco
+    ];
+    const c = colors[colorIdx % colors.length];
+    const el = document.createElement('div');
+    el.className = 'pixel-flower';
+    el.style.width = size + 'px';
+    el.style.height = (size * 1.6) + 'px';
+
+    // Stelo più robusto e verde
+    const stem = document.createElement('div');
+    stem.className = 'pf-stem';
+    stem.style.width = Math.max(2, Math.floor(size * 0.18)) + 'px';
+    stem.style.height = Math.floor(size * 0.75) + 'px';
+    stem.style.background = '#4a8c2a'; // Verde più scuro
+    el.appendChild(stem);
+
+    // Petali più grandi e arrotondati
+    const ps = Math.floor(size * 0.4);
+    const positions = [
+      { t: 0, l: 50, tx: '-50%', ty: '0' },
+      { t: ps, l: 0, tx: '0', ty: '0' },
+      { t: ps, l: 100, tx: '-100%', ty: '0' },
+      { t: ps * 2, l: 50, tx: '-50%', ty: '0' }
+    ];
+    for (let p = 0; p < 4; p++) {
+      const petal = document.createElement('div');
+      petal.style.cssText = 'position:absolute;width:' + ps + 'px;height:' + ps + 'px;background:' + c.petal +
+        ';top:' + positions[p].t + 'px;left:' + positions[p].l + '%;transform:translate(' + positions[p].tx + ',' + positions[p].ty +
+        ');border-radius:50%;image-rendering:auto;box-shadow:0 1px 2px rgba(0,0,0,0.15);';
+      el.appendChild(petal);
+    }
+
+    // Centro più grande e con ombra
+    const cs = Math.floor(size * 0.3);
+    const center = document.createElement('div');
+    center.style.cssText = 'position:absolute;width:' + cs + 'px;height:' + cs + 'px;background:' + c.center +
+      ';top:' + ps + 'px;left:50%;transform:translateX(-50%);border-radius:50%;image-rendering:auto;z-index:1;box-shadow:inset 0 1px 3px rgba(0,0,0,0.2);';
+    el.appendChild(center);
+
+    // Foglia più grande e dettagliata
+    const ls = Math.floor(size * 0.35);
+    const leaf = document.createElement('div');
+    leaf.className = 'pf-leaf';
+    leaf.style.width = ls + 'px';
+    leaf.style.height = Math.floor(ls * 0.6) + 'px';
+    leaf.style.left = (colorIdx % 2 === 0) ? '-2px' : (size - ls + 2) + 'px';
+    leaf.style.bottom = Math.floor(size * 0.3) + 'px';
+    el.appendChild(leaf);
+
+    return el;
+  }
+
+  function canPlaceDecor(x, y, halfSize) {
+    let holeDist = halfSize + 45;
+    if (holeDist < 90) holeDist = 90;
+    if (tooCloseToAnyHole(x, y, holeDist)) return false;
+    if (tooCloseToAnyDecor(x, y, halfSize + 10)) return false;
+    return true;
+  }
+
+  function getHolePos(gx, gy) {
+    const prob = srand(gx, gy, 42);
+    if (prob > 0.55) return null;
+    const wx = gx * CELL, wy = gy * CELL;
+    const ox = (srand(gx, gy, 111) - 0.5) * 110;
+    const oy = (srand(gx, gy, 222) - 0.5) * 110;
+    const wave1 = Math.sin(gx * 0.7 + gy * 0.3) * 20;
+    const wave2 = Math.cos(gx * 0.4 - gy * 0.6) * 15;
+    const fx = wx + ox + wave1, fy = wy + oy + wave2;
+    if (inTemple(fx, fy)) return null;
+    return { x: fx, y: fy };
+  }
+
+  function ensureHolesRegistered(cx, cy) {
+    const rk = 'r' + cx + ',' + cy;
+    if (genChunks[rk]) return;
+    genChunks[rk] = true;
+    const sx = cx * CHUNK, sy = cy * CHUNK;
+    const localHoles = [];
+    for (let dy = 0; dy < CHUNK; dy++) {
+      for (let dx = 0; dx < CHUNK; dx++) {
+        const gx = sx + dx, gy = sy + dy;
+        const p = getHolePos(gx, gy);
+        if (!p) continue;
+        let skip = false;
+        for (let k = 0; k < localHoles.length; k++) {
+          const ddx = p.x - localHoles[k].x, ddy = p.y - localHoles[k].y;
+          // Aumentato a 120 pixel per evitare tombe troppo vicine
+          if (ddx * ddx + ddy * ddy < 120 * 120) { skip = true; break; }
+        }
+        if (skip) continue;
+        localHoles.push(p);
+        registerHole(p.x, p.y);
+      }
+    }
+  }
+
+  function genChunk(cx, cy) {
+    const ck = cx + ',' + cy;
+    if (genChunks[ck]) return;
+    genChunks[ck] = true;
+
+    for (let ay = cy - 1; ay <= cy + 1; ay++)
+      for (let ax = cx - 1; ax <= cx + 1; ax++)
+        ensureHolesRegistered(ax, ay);
+
+    const sx = cx * CHUNK, sy = cy * CHUNK;
+    const chunkPx = CHUNK * CELL;
+
+    // Crea buchi
+    for (let dy = 0; dy < CHUNK; dy++) {
+      for (let dx = 0; dx < CHUNK; dx++) {
+        const gx = sx + dx, gy = sy + dy;
+        const p = getHolePos(gx, gy);
+        if (!p) continue;
+
+        const hid = gx + ',' + gy;
+        if (holeEls[hid]) continue;
+
+        if (tooCloseToAnyHole(p.x, p.y, 64)) {
+          let isOwn = false;
+          const bx = Math.floor(p.x / BUCKET_SZ), by = Math.floor(p.y / BUCKET_SZ);
+          const arr = holeBuckets[bx + ',' + by];
+          if (arr) {
+            for (let k = 0; k < arr.length; k++) {
+              if (Math.abs(arr[k].x - p.x) < 0.1 && Math.abs(arr[k].y - p.y) < 0.1) { isOwn = true; break; }
+            }
+          }
+          if (!isOwn) continue;
+        }
+
+        const h = document.createElement('div');
+        h.className = 'hole-spot';
+        h.dataset.id = hid;
+        h.style.left = (p.x - HOLE_W / 2) + 'px';
+        h.style.top = (p.y - HOLE_W / 2) + 'px';
+        h.addEventListener('click', function(e) { e.stopPropagation(); handleHoleClick(h); });
+        h.addEventListener('touchend', function(e) {
+          if (!panMoved) { e.preventDefault(); e.stopPropagation(); handleHoleClick(h); }
+        });
+        world.appendChild(h);
+        holeEls[hid] = h;
+        if (gravesData[hid]) restoreGrave(h, gravesData[hid]);
+      }
+    }
+
+    // Decorazioni
+    const nd = 5 + (hsh(cx, cy, 9876) % 5);
+    for (let i = 0; i < nd; i++) {
+      const rx = srand(cx * 100 + i, cy * 200 + i, 3333);
+      const ry = srand(cx * 300 + i, cy * 400 + i, 4444);
+      const rt = srand(cx * 500 + i, cy * 600 + i, 5555);
+      const rf = srand(cx * 700 + i, cy * 800 + i, 6666);
+      const rs = srand(cx * 900 + i, cy * 1100 + i, 7777);
+
+      const cwx = cx * chunkPx + rx * chunkPx;
+      const cwy = cy * chunkPx + ry * chunkPx;
+
+      const isTree = rt > 0.35;
+      const sz = isTree ? 55 + Math.floor(rs * 45) : 25 + Math.floor(rs * 30);
+      const halfSz = sz / 2;
+
+      if (Math.abs(cwx) < TEMPLE_R - 30 && Math.abs(cwy) < TEMPLE_R - 30) continue;
+      if (!canPlaceDecor(cwx, cwy, halfSz)) continue;
+
+      registerDecor(cwx, cwy, halfSz);
+
+      const el = document.createElement('div');
+      el.className = 'decor ' + (isTree ? 'tree' : 'stone');
+      el.style.left = (cwx - halfSz) + 'px';
+      el.style.top = (cwy - halfSz) + 'px';
+      el.style.width = sz + 'px';
+
+      const img = document.createElement('img');
+      img.src = isTree ? 'albe_nobg.webp' : 'pietre_nobg.webp';
+      img.alt = isTree ? 'Albero' : 'Pietra';
+      if (rf > 0.5) img.style.transform = 'scaleX(-1)';
+      el.appendChild(img);
+      world.appendChild(el);
+    }
+
+    // Fiori - MOLTI PIÙ FIORI E PIÙ BELLI
+    const nf = 10 + (hsh(cx, cy, 5432) % 9); // Da 10 a 18 fiori per chunk
+    for (let i = 0; i < nf; i++) {
+      const fx = srand(cx * 150 + i, cy * 250 + i, 8888);
+      const fy = srand(cx * 350 + i, cy * 450 + i, 9999);
+      const fsz = 10 + Math.floor(srand(cx * 550 + i, cy * 650 + i, 1234) * 14); // Da 10 a 24px
+      const fci = hsh(cx + i, cy + i, 4321) % 12; // 12 varietà di colori
+
+      const fwx = cx * chunkPx + fx * chunkPx;
+      const fwy = cy * chunkPx + fy * chunkPx;
+
+      // NON sul tempio (area più ampia)
+      if (Math.abs(fwx) < TEMPLE_R - 20 && Math.abs(fwy) < TEMPLE_R - 20) continue;
+
+      // NON vicino a tombe/buche (distanza aumentata)
+      const flowerHoleDist = 60; // Aumentato da 50 a 60
+      if (tooCloseToAnyHole(fwx, fwy, flowerHoleDist)) continue;
+      
+      // NON vicino ad alberi/sassi (distanza aumentata)
+      if (tooCloseToAnyDecor(fwx, fwy, 30)) continue; // Aumentato da 20 a 30
+
+      registerDecor(fwx, fwy, fsz / 2);
+
+      const flower = createPixelFlower(fsz, fci);
+      flower.style.left = (fwx - fsz / 2) + 'px';
+      flower.style.top = (fwy - fsz) + 'px';
+      world.appendChild(flower);
+    }
+  }
+
+  function update() {
+    const vw = viewport.offsetWidth, vh = viewport.offsetHeight;
+    const vis = Math.max(vw, vh) * 0.8;
+    const x1 = camX - vis, x2 = camX + vis;
+    const y1 = camY - vis, y2 = camY + vis;
+    const chunkPx = CHUNK * CELL;
+    const minCX = Math.floor(x1 / chunkPx), maxCX = Math.floor(x2 / chunkPx);
+    const minCY = Math.floor(y1 / chunkPx), maxCY = Math.floor(y2 / chunkPx);
+    for (let cy = minCY; cy <= maxCY; cy++)
+      for (let cx = minCX; cx <= maxCX; cx++)
+        genChunk(cx, cy);
+    
+    // Il point del mondo (camX, camY) deve essere al centro dello schermo
+    // World è già posizionato a 50% 50% del viewport
+    // Quindi dobbiamo solo traslarlo di -camX, -camY (moltiplicato per zoom)
+    const ox = -camX;
+    const oy = -camY;
+    
+    // Applica transform: translate poi scale
+    world.style.transform = 'translate(' + ox + 'px, ' + oy + 'px) scale(' + zoomLevel + ')';
+    
+    // Muovi anche lo sfondo in sincronia con il mondo
+    const bgX = -camX % 40;
+    const bgY = -camY % 40;
+    viewport.style.backgroundPosition = bgX + 'px ' + bgY + 'px, ' + (bgX + 20) + 'px ' + (bgY + 20) + 'px';
+  }
+
+  // Pan
+  let panMoved = false, panDown = false, panStartX = 0, panStartY = 0, panCamX = 0, panCamY = 0;
+  viewport.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.hole-spot') || e.target.closest('.modal-overlay')) return;
+    panDown = true; panMoved = false;
+    panStartX = e.clientX; panStartY = e.clientY;
+    panCamX = camX; panCamY = camY;
+  });
+  viewport.addEventListener('mousemove', function(e) {
+    if (!panDown) return;
+    const dx = e.clientX - panStartX, dy = e.clientY - panStartY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) panMoved = true;
+    // Muovi la camera nella direzione opposta al trascinamento
+    camX = panCamX - dx / zoomLevel; 
+    camY = panCamY - dy / zoomLevel;
+    update();
+  });
+  viewport.addEventListener('mouseup', () => { panDown = false; });
+  viewport.addEventListener('mouseleave', () => { panDown = false; });
+
+  viewport.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.hole-spot')) { panMoved = false; return; }
+    if (e.touches.length !== 1) return;
+    panDown = true; panMoved = false;
+    panStartX = e.touches[0].clientX; panStartY = e.touches[0].clientY;
+    panCamX = camX; panCamY = camY;
+  });
+  viewport.addEventListener('touchmove', function(e) {
+    if (!panDown || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - panStartX, dy = e.touches[0].clientY - panStartY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) panMoved = true;
+    // Muovi la camera nella direzione opposta al trascinamento
+    camX = panCamX - dx / zoomLevel; 
+    camY = panCamY - dy / zoomLevel;
+    update();
+  });
+  viewport.addEventListener('touchend', () => { panDown = false; });
+  viewport.addEventListener('touchcancel', () => { panDown = false; });
+
+  window.goHome = function() { camX = 0; camY = 0; update(); };
+
+  // Zoom functionality
+  const ZOOM_STEP = 0.15;  // Step più piccolo per 3 livelli
+  const MIN_ZOOM = 0.45;   // Zoom minimo dopo 3 step (0.9 - 0.15*3 = 0.45)
+  const MAX_ZOOM = 2;
+  
+  window.toggleZoom = function() {
+    // Decrementa lo zoom (zoom out)
+    zoomLevel -= ZOOM_STEP;
+    
+    // Se va sotto il minimo (dopo 3 zoom out), torna allo zoom iniziale (0.9)
+    if (zoomLevel < MIN_ZOOM) {
+      zoomLevel = 0.9;  // Torna allo zoom iniziale
+    }
+    
+    // Applica lo zoom al world
+    update();
+    
+    // Aggiorna il tooltip del bottone
+    const zoomBtn = document.getElementById('zoom-btn');
+    if (zoomBtn) {
+      zoomBtn.title = `Zoom: ${Math.round(zoomLevel * 100)}%`;
+    }
+  };
+
+  // Music controls
+  let musicPlaying = false;
+  const backgroundMusic = document.getElementById('background-music');
+  const musicBtn = document.getElementById('music-btn');
+  
+  window.toggleMusic = function() {
+    if (musicPlaying) {
+      backgroundMusic.pause();
+      musicPlaying = false;
+      musicBtn.classList.remove('playing');
+      musicBtn.title = 'Riproduci musica';
+      // Cambia icona a volume-x (muto)
+      const icon = musicBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', 'volume-x');
+        lucide.createIcons();
+      }
+    } else {
+      backgroundMusic.play().catch(err => {
+        console.log('Autoplay bloccato dal browser:', err);
+        alert('Clicca di nuovo per attivare la musica 🎵');
+      });
+      musicPlaying = true;
+      musicBtn.classList.add('playing');
+      musicBtn.title = 'Metti in pausa';
+      // Cambia icona a volume-2 (audio)
+      const icon = musicBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', 'volume-2');
+        lucide.createIcons();
+      }
+    }
+  };
+
+  // Handle hole click
+  function handleHoleClick(el) {
+    if (el.classList.contains('bought')) {
+      openViewModal(el);
+    } else {
+      selectedHole = el;
+      modal.style.display = 'flex';
+      inpName.value = '';
+      inpDate.value = '';
+      inpText.value = '';
+      inpPhoto.value = '';
+      document.getElementById('grave-email').value = '';
+    }
+  }
+
+  // NUOVA FUNZIONE: Procedi al pagamento con Stripe
+  window.proceedToPayment = async function() {
+    if (!selectedHole) return;
+    
+    const name = inpName.value.trim();
+    const date = inpDate.value.trim();
+    const epitaph = inpText.value.trim();
+    const email = document.getElementById('grave-email').value.trim();
+    
+    // Validazione
+    if (!name) {
+      alert("⚠️ Inserisci il nome dell'animale");
+      return;
+    }
+    if (!date) {
+      alert("⚠️ Inserisci le date");
+      return;
+    }
+    if (!epitaph) {
+      alert("⚠️ Inserisci un epitaffio");
+      return;
+    }
+    
+    // Prepara i dati da salvare dopo il pagamento
+    let photoData = null;
+    if (inpPhoto.files && inpPhoto.files[0]) {
+      try {
+        photoData = await readFileAsDataURL(inpPhoto.files[0]);
+        photoData = await compressImage(photoData, 200, 0.7);
+      } catch (e) {
+        console.error("Errore foto:", e);
+      }
+    }
+
+    const graveData = {
+      name: name,
+      date: date,
+      epitaph: epitaph,
+      photo: photoData,
+      email: email,
+      holeId: selectedHole.dataset.id,
+      timestamp: Date.now(),
+      paymentStatus: 'pending'
+    };
+
+    // Salva temporaneamente i dati nel localStorage per recuperarli dopo il pagamento
+    localStorage.setItem('pendingGrave', JSON.stringify(graveData));
+    
+    // Salva anche su Firebase come pagamento pendente (backup in caso Safari cancelli localStorage)
+    const pendingRef = doc(db, "pending_payments", graveData.holeId + '_' + graveData.timestamp);
+    try {
+      await setDoc(pendingRef, graveData);
+      console.log('💾 Dati pendenti salvati su Firebase');
+    } catch(e) {
+      console.error('Errore salvataggio pendente su Firebase:', e);
+    }
+    
+    // Costruisci l'URL di Stripe con parametri personalizzati
+    const stripeUrl = 'https://buy.stripe.com/4gMcN52yndwc3JFak8aVa04';
+    const clientReferenceId = graveData.holeId + '_' + graveData.timestamp;
+    
+    // Aggiungi parametri all'URL se Stripe li supporta
+    const params = new URLSearchParams({
+      client_reference_id: clientReferenceId,
+      prefilled_email: email || ''
+    });
+    
+    // Salva anche il riferimento per tracking
+    localStorage.setItem('paymentReference', clientReferenceId);
+    localStorage.setItem('pendingGraveRef', pendingRef.path);
+    
+    // Mostra messaggio di conferma
+    const confirmMsg = `Stai per essere reindirizzato a Stripe per completare il pagamento.\n\nMemoriale per: ${name}\nDate: ${date}\n\nContinuare?`;
+    if (confirm(confirmMsg)) {
+      // Redirect a Stripe
+      window.location.href = `${stripeUrl}?${params.toString()}`;
+    }
+  }
+
+  // Funzione per verificare se il pagamento è stato completato (chiamata al ritorno da Stripe)
+  window.checkPaymentAndCreateGrave = async function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    const success = urlParams.get('success');
+    
+    // Se torniamo da Stripe con successo
+    if (success === 'true' || sessionId) {
+      console.log('🎯 Ritorno da Stripe con session_id:', sessionId);
+      
+      let graveData = null;
+      
+      // 1. Prova localStorage
+      const pendingData = localStorage.getItem('pendingGrave');
+      if (pendingData) {
+        console.log('📦 Dati trovati in localStorage');
+        graveData = JSON.parse(pendingData);
+      }
+      
+      // 2. Se localStorage vuoto, cerca su Firebase nei pagamenti pendenti
+      if (!graveData) {
+        console.log('⚠️ localStorage vuoto, cerco su Firebase...');
+        try {
+          const pendingCol = collection(db, "pending_payments");
+          const pendingSnap = await getDocs(pendingCol);
+          if (!pendingSnap.empty) {
+            // Prendi il più recente
+            let latest = null;
+            pendingSnap.forEach((d) => {
+              const data = d.data();
+              if (!latest || data.timestamp > latest.timestamp) {
+                latest = data;
+              }
+            });
+            if (latest && latest.paymentStatus === 'pending') {
+              graveData = latest;
+              console.log('📦 Dati recuperati da Firebase:', graveData.name);
+            }
+          }
+        } catch(e) {
+          console.error('Errore recupero dati pendenti da Firebase:', e);
+        }
+      }
+      
+      if (graveData) {
+        graveData.paymentStatus = 'completed';
+        graveData.sessionId = sessionId || 'manual_success';
+        graveData.completedAt = Date.now();
+        
+        try {
+          // Salva nel database principale
+          await setDoc(worldRef, {
+            graves: { [graveData.holeId]: graveData },
+            population: increment(1)
+          }, { merge: true });
+          
+          console.log('✅ Memoriale salvato su Firebase per:', graveData.name);
+          
+          // Aggiorna i dati locali
+          gravesData[graveData.holeId] = graveData;
+          
+          // Crea visivamente la lapide sulla mappa
+          let holeEl = holeEls[graveData.holeId];
+          if (holeEl) {
+            restoreGrave(holeEl, graveData);
+            console.log('🪦 Lapide creata visivamente');
+          } else {
+            console.log('⚠️ Buco non trovato nel DOM, la lapide apparirà al prossimo caricamento');
+          }
+          
+          // Pulisci localStorage
+          localStorage.removeItem('pendingGrave');
+          localStorage.removeItem('paymentReference');
+          localStorage.removeItem('pendingGraveRef');
+          
+          // Rimuovi parametri dall'URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Mostra messaggio di successo
+          alert("✅ Pagamento completato con successo!\n🐾 Il memoriale di " + graveData.name + " è stato creato.\n\nGrazie per aver commemorato il tuo amico con noi! ❤️");
+          
+          // Centra la vista sulla home (tempio)
+          camX = 0;
+          camY = 0;
+          update();
+          
+        } catch (e) {
+          console.error("Errore creazione memoriale:", e);
+          alert("⚠️ Pagamento ricevuto ma errore nella creazione del memoriale.\nContatta il supporto: " + e.message);
+        }
+      } else {
+        console.log('❌ Nessun dato trovato né in localStorage né su Firebase');
+        alert("⚠️ Pagamento ricevuto ma i dati del memoriale non sono stati trovati.\nContatta il supporto a info@pethernity.com con il tuo ID sessione: " + (sessionId || 'N/A'));
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+    
+    // Se il pagamento è stato cancellato
+    if (urlParams.get('canceled') === 'true') {
+      alert("❌ Pagamento annullato.\nPuoi riprovare quando vuoi.");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  // Funzione per creare una tomba (MANTENUTA per compatibilità, ma ora richiede pagamento)
+  window.createGrave = async function() {
+    // Questa funzione ora rimanda a proceedToPayment
+    alert("💳 Per creare un memoriale è necessario completare il pagamento.\n\nClicca su 'PROCEDI AL PAGAMENTO' per continuare.");
+  }
+
+  window.closeModal = function() {
+    modal.style.display = 'none';
+    selectedHole = null;
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = (e) => res(e.target.result);
+      r.onerror = (e) => rej(e);
+      r.readAsDataURL(file);
+    });
+  }
+
+  function compressImage(dataURL, maxW, maxQ) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        if (h > maxW) { w = Math.round(w * maxW / h); h = maxW; }
+        
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        res(c.toDataURL('image/jpeg', maxQ));
+      };
+      img.onerror = () => rej(new Error('Image load failed'));
+      img.src = dataURL;
+    });
+  }
+
+  function restoreGrave(el, info) {
+    if (!el.classList.contains('bought')) {
+      el.classList.add('bought');
+      el.innerHTML = '';
+      const tomb = document.createElement('div'); 
+      tomb.className = 'tombstone';
+      const cross = document.createElement('div'); 
+      cross.className = 'tomb-cross'; 
+      cross.innerHTML = '&#x2764;'; 
+      tomb.appendChild(cross);
+      
+      if (info.photo) {
+        const ph = document.createElement('img'); 
+        ph.className = 'tomb-photo'; 
+        ph.src = info.photo; 
+        ph.alt = info.name; 
+        ph.loading = 'lazy';
+        ph.crossOrigin = 'anonymous';
+        ph.onerror = function() { this.style.display = 'none'; };
+        tomb.appendChild(ph);
+      }
+      
+      const id = document.createElement('div'); 
+      id.className = 'tomb-info';
+      const n = document.createElement('div'); 
+      n.className = 't-name'; 
+      n.innerText = info.name;
+      const d = document.createElement('div'); 
+      d.className = 't-date'; 
+      d.innerText = info.date;
+      const ep = document.createElement('div'); 
+      ep.className = 't-epitaph'; 
+      ep.innerText = info.epitaph;
+      id.appendChild(n); 
+      id.appendChild(d); 
+      id.appendChild(ep);
+      tomb.appendChild(id); 
+      el.appendChild(tomb);
+    }
+    el.__graveData = info;
+  }
+
+  function openViewModal(el) {
+    const data = el.__graveData; 
+    if (!data) return;
+    
+    const holeId = el.dataset.id;
+    if (holeId && gravesData[holeId]) {
+      el.__graveData = gravesData[holeId];
+    }
+    
+    document.getElementById('view-name').innerText = data.name;
+    document.getElementById('view-date').innerText = data.date;
+    document.getElementById('view-epitaph').innerText = '"' + data.epitaph + '"';
+    
+    if (data.photo) { 
+      viewPhoto.src = data.photo; 
+      viewPhoto.crossOrigin = 'anonymous';
+      viewPhoto.onerror = function() { 
+        viewPhoto.style.display = 'none'; 
+        viewNoPhotoText.style.display = 'block'; 
+      };
+      viewPhoto.style.display = 'block'; 
+      viewNoPhotoText.style.display = 'none'; 
+    } else { 
+      viewPhoto.style.display = 'none'; 
+      viewNoPhotoText.style.display = 'block'; 
+    }
+    viewModal.style.display = 'flex';
+  }
+
+  window.closeViewModal = function() { viewModal.style.display = 'none'; };
+
+  // === SCENA INIZIALE CURATA (intorno al tempio) ===
+  // 6 buchi fissi intorno al tempio, alberi ai lati, fiori decorativi
+  (function buildHomeScene() {
+    // Posizioni fisse dei 6 buchi "vetrina" intorno al tempio
+    const fixedHoles = [
+      // Sopra il tempio
+      { id: 'home_t1', x: -90, y: -170 },
+      { id: 'home_t2', x:   0, y: -200 },
+      { id: 'home_t3', x:  90, y: -170 },
+      // Sotto il tempio
+      { id: 'home_b1', x: -90, y:  170 },
+      { id: 'home_b2', x:   0, y:  200 },
+      { id: 'home_b3', x:  90, y:  170 }
+    ];
+
+    for (let i = 0; i < fixedHoles.length; i++) {
+      const fh = fixedHoles[i];
+      registerHole(fh.x, fh.y);
+      if (!holeEls[fh.id]) {
+        const h = document.createElement('div');
+        h.className = 'hole-spot';
+        h.dataset.id = fh.id;
+        h.style.left = (fh.x - HOLE_W / 2) + 'px';
+        h.style.top = (fh.y - HOLE_W / 2) + 'px';
+        h.addEventListener('click', function(e) { e.stopPropagation(); handleHoleClick(h); });
+        h.addEventListener('touchend', function(e) {
+          if (!panMoved) { e.preventDefault(); e.stopPropagation(); handleHoleClick(h); }
+        });
+        world.appendChild(h);
+        holeEls[fh.id] = h;
+        if (gravesData[fh.id]) restoreGrave(h, gravesData[fh.id]);
+      }
+    }
+
+    // Alberi fissi ai lati del tempio (simmetrici)
+    const fixedTrees = [
+      { x: -190, y: -80, sz: 80, flip: false },
+      { x:  190, y: -80, sz: 75, flip: true },
+      { x: -185, y:  80, sz: 70, flip: true },
+      { x:  185, y:  80, sz: 72, flip: false }
+    ];
+    for (let i = 0; i < fixedTrees.length; i++) {
+      const ft = fixedTrees[i];
+      registerDecor(ft.x, ft.y, ft.sz / 2);
+      const el = document.createElement('div');
+      el.className = 'decor tree';
+      el.style.left = (ft.x - ft.sz / 2) + 'px';
+      el.style.top = (ft.y - ft.sz / 2) + 'px';
+      el.style.width = ft.sz + 'px';
+      const img = document.createElement('img');
+      img.src = 'albe_nobg.webp';
+      img.alt = 'Albero';
+      if (ft.flip) img.style.transform = 'scaleX(-1)';
+      el.appendChild(img);
+      world.appendChild(el);
+    }
+
+    // Pietre decorative
+    const fixedStones = [
+      { x: -140, y: -230, sz: 35 },
+      { x:  140, y: -230, sz: 32 },
+      { x: -145, y:  235, sz: 30 },
+      { x:  145, y:  235, sz: 33 }
+    ];
+    for (let i = 0; i < fixedStones.length; i++) {
+      const fs = fixedStones[i];
+      registerDecor(fs.x, fs.y, fs.sz / 2);
+      const el = document.createElement('div');
+      el.className = 'decor stone';
+      el.style.left = (fs.x - fs.sz / 2) + 'px';
+      el.style.top = (fs.y - fs.sz / 2) + 'px';
+      el.style.width = fs.sz + 'px';
+      const img = document.createElement('img');
+      img.src = 'pietre_nobg.webp';
+      img.alt = 'Pietra';
+      el.appendChild(img);
+      world.appendChild(el);
+    }
+
+    // Fiori pixel art decorativi
+    const fixedFlowers = [
+      { x: -120, y: -140, sz: 12, c: 0 },
+      { x:  120, y: -140, sz: 11, c: 2 },
+      { x: -50, y: -250, sz: 10, c: 1 },
+      { x:  50, y: -250, sz: 9, c: 3 },
+      { x: -115, y:  145, sz: 11, c: 4 },
+      { x:  115, y:  145, sz: 10, c: 5 },
+      { x: -55, y:  255, sz: 12, c: 6 },
+      { x:  55, y:  255, sz: 11, c: 7 },
+      { x: -230, y: -20, sz: 14, c: 1 },
+      { x:  230, y: -20, sz: 13, c: 3 },
+      { x: -225, y:  25, sz: 12, c: 5 },
+      { x:  225, y:  25, sz: 11, c: 2 }
+    ];
+    for (let i = 0; i < fixedFlowers.length; i++) {
+      const ff = fixedFlowers[i];
+      registerDecor(ff.x, ff.y, ff.sz / 2);
+      const flower = createPixelFlower(ff.sz, ff.c);
+      flower.style.left = (ff.x - ff.sz / 2) + 'px';
+      flower.style.top = (ff.y - ff.sz) + 'px';
+      world.appendChild(flower);
+    }
+  })();
+
+  // Carica il cimitero mondiale
+  const worldRef = doc(db, "world", "cemetery_free");
+  onSnapshot(worldRef, (doc) => {
+    if (doc.exists()) {
+      const data = doc.data();
+      gravesData = data.graves || {};
+      population = data.population || 0;
+      
+      // Aggiorna le tombe esistenti
+      for (const hid in gravesData) {
+        if (holeEls[hid]) {
+          restoreGrave(holeEls[hid], gravesData[hid]);
+        }
+      }
+    }
+  });
+
+  // Verifica al caricamento se stiamo tornando da un pagamento Stripe
+  // Esegui subito (il DOM è già pronto perché lo script è alla fine del body)
+  (function checkStripeReturn() {
+    // Inizializza Lucide Icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
+    
+    // Controlla se stiamo tornando da Stripe
+    const urlParams = new URLSearchParams(window.location.search);
+    const isReturningFromStripe = urlParams.get('success') === 'true' || urlParams.get('session_id') || urlParams.get('canceled') === 'true';
+    const hasPendingGrave = localStorage.getItem('pendingGrave');
+    
+    console.log('🔍 Check Stripe return:', { isReturningFromStripe, hasPendingGrave: !!hasPendingGrave, url: window.location.href });
+    
+    if (isReturningFromStripe || (hasPendingGrave && isReturningFromStripe)) {
+      console.log('✅ Ritorno da Stripe rilevato!');
+      
+      // Salta la splash screen e vai direttamente alla mappa
+      const splash = document.getElementById('splash-screen');
+      if (splash) {
+        splash.style.display = 'none';
+      }
+      // Nascondi anche il welcome modal
+      const welcome = document.getElementById('welcome-modal');
+      if (welcome) {
+        welcome.style.display = 'none';
+      }
+      // Cambia theme-color al verde della mappa
+      const themeColor = document.querySelector('meta[name="theme-color"]');
+      if (themeColor) themeColor.setAttribute('content', '#7cbd59');
+      
+      // Avvia la musica
+      const backgroundMusic = document.getElementById('background-music');
+      const musicBtn = document.getElementById('music-btn');
+      if (backgroundMusic) {
+        backgroundMusic.play().then(() => {
+          musicPlaying = true;
+          if (musicBtn) musicBtn.classList.add('playing');
+        }).catch(() => {});
+      }
+      
+      // Ora verifica il pagamento e crea il memoriale
+      // Ritardo per dare tempo a Firebase di caricare i dati
+      console.log('⏳ Attendo 3 secondi per Firebase...');
+      setTimeout(() => {
+        console.log('🚀 Avvio checkPaymentAndCreateGrave, holeEls:', Object.keys(holeEls).length);
+        checkPaymentAndCreateGrave();
+      }, 3000);
+    }
+    
+    // Assicura che la vista inizi centrata sul tempio (origine)
+    camX = 0;
+    camY = 0;
+    update();
+  })();
+
+  // Inizializza la prima vista centrata sul tempio
+  camX = 0;
+  camY = 0;
+  update();
+</script>
+
+</body>
+</html>

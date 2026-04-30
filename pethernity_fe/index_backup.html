@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Pixel Meadow – Temple & Tombs</title>
+  <style>
+    :root {
+      --pixel-scale: 4px; /* Scala di base per mantenere il look pixeloso */
+    }
+
+    body {
+      margin: 0;
+      height: 100vh; /* Altezza piena viewport */
+      width: 100vw;
+      background: #222;
+      font-family: 'Courier New', Courier, monospace; /* Font più standard ma stile retro */
+      overflow: hidden; /* Niente scroll */
+      touch-action: manipulation; /* Migliora risposta al tocco */
+    }
+
+    /* Contenitore principale (la mappa) esteso a tutto lo schermo */
+    .scene {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      image-rendering: pixelated;
+      background-color: #7cbd59;
+      /* Pattern erba più sofisticato e senza cuciture evidenti */
+      background-image: 
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%, #85c260),
+        linear-gradient(45deg, #85c260 25%, transparent 25%, transparent 75%, #85c260 75%, #85c260);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.3); /* Vignettatura interna */
+    }
+
+    /* --------------------------------------
+       UI INTERFACCIA - RIMOSSA
+    -------------------------------------- */
+    /* .ui-layer removed */
+
+    /* --------------------------------------
+       DIRUPO (CLIFF) SULLA DESTRA
+    -------------------------------------- */
+    .cliff-container {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: clamp(40px, 12vw, 180px); /* Ridotto a 40px min per Max spazio */
+      z-index: 10;
+    }
+
+    /* Cielo sotto il dirupo */
+    .cliff-sky-bg {
+      position: absolute;
+      inset: 0;
+      background: #87CEEB;
+      border-left: 4px solid #4a2e1a;
+      overflow: hidden;
+      display: flex; /* Assicura che riempia lo spazio */
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .cloud {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: floatClouds 20s linear infinite;
+    }
+    .c1 { width: 60px; height: 30px; top: 10%; right: -20px; animation-duration: 25s; }
+    .c2 { width: 80px; height: 40px; top: 40%; right: 10px; animation-duration: 35s; }
+    .c3 { width: 50px; height: 25px; top: 80%; right: -10px; animation-duration: 20s; }
+
+    @keyframes floatClouds {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(-20px); }
+      100% { transform: translateX(0); }
+    }
+
+    /* Parete rocciosa verticale */
+    .cliff-face {
+      position: absolute;
+      top: 0; bottom: 0; 
+      left: 0; /* Allineato a sinistra del container */
+      width: 30%; /* Occupa una parte del container */
+      background-color: #5c3a21;
+      background-image: repeating-linear-gradient(
+        180deg,
+        #5c3a21 0,
+        #5c3a21 10px,
+        #4a2e1a 10px,
+        #4a2e1a 12px
+      );
+      box-shadow: inset 5px 0 10px rgba(0,0,0,0.6);
+    }
+    
+    /* Bordo erboso frastagliato sopra la roccia */
+    .cliff-edge {
+      position: absolute;
+      top: 0; bottom: 0; left: -10px; /* Esce un po' in fuori */
+      width: 10px;
+      background: linear-gradient(to right, #7cbd59, #5a8c3d);
+      background-size: 100% 20px;
+    }
+
+    /* --------------------------------------
+       ELEMENTI SCENICI (Alberi, Fiori) responsive
+    -------------------------------------- */
+    .tree {
+      position: absolute;
+      width: clamp(60px, 10vw, 100px); 
+      height: clamp(60px, 10vw, 100px);
+      background: #2d5a27;
+      border-radius: 50%;
+      box-shadow: 6px 6px 0 rgba(0,0,0,0.3), inset 8px 8px 0 #3e7a36;
+      z-index: 5;
+    }
+    .tree::after { /* Tronco */
+      content: "";
+      position: absolute;
+      bottom: -15%; left: 40%;
+      width: 20%; height: 30%;
+      background: #5c3a21;
+      z-index: -1;
+      border-radius: 4px;
+    }
+    
+    .flower {
+      position: absolute;
+      width: 12px; height: 12px;
+      background: white;
+      border-radius: 50%;
+      z-index: 2;
+      box-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    }
+    .flower.pink { background: #ff69b4; }
+    .flower.white { background: #fff; }
+
+    /* --------------------------------------
+       IL TEMPIO CENTRALE (Sostituito con Immagine)
+    -------------------------------------- */
+    .temple-area {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: clamp(90px, 35vw, 260px); /* 90px minimo */
+      
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      pointer-events: none; 
+    }
+
+    /* Immagine 12.webp come tempio -> ORA 10.webp */
+    .temple-image {
+        width: 100%;
+        height: auto;
+        image-rendering: pixelated;
+        display: block;
+        /* Ombra per integrarlo nel terreno */
+        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    }
+
+    /* Nascondiamo la vecchia struttura CSS del tempio */
+    .temple-body, .temple-roof, .roof-deco, .temple-door, .temple-window {
+        display: none;
+    }
+
+    /* Insegna POPULATION - riposizionata rispetto all'immagine */
+    .population-sign {
+      position: absolute;
+      bottom: -30px; 
+      left: 50%;
+      transform: translateX(-50%);
+      background: #b0bec5;
+      border: 3px solid #37474f;
+      padding: 5px 10px;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+      z-index: 10;
+      min-width: 120px;
+      border-radius: 2px;
+    }
+    .population-sign span {
+      display: block;
+      color: #37474f;
+      font-size: 10px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    #pop-count {
+      color: #c62828; 
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    /* --------------------------------------
+       BUCHI / TOMBE INTERATTIVE (Migliorati)
+    -------------------------------------- */
+    .hole-spot {
+      position: absolute;
+      width: clamp(32px, 10vw, 56px); /* 32px minimo */
+      height: clamp(32px, 10vw, 56px);
+      
+      background: #558b2f; 
+      border: 3px dashed rgba(255,255,255,0.5);
+      border-radius: 50%; /* BUCHI ROTONDI */
+      
+      cursor: pointer;
+      z-index: 4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    }
+    
+    .hole-spot:hover {
+        background: #689f38;
+        transform: scale(1.1);
+        border-color: #fff;
+    }
+
+    /* Stato: TOMBA */
+    .hole-spot.bought {
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      /* Nessun bordo tratteggiato */
+      border-radius: 0;
+      /* Dimensioni leggermente aumentate per contenere testo */
+      width: clamp(44px, 13vw, 55px);
+      height: clamp(55px, 15vw, 70px);
+      transform: none !important;
+    }
+
+    /* Vecchio stile lapide con ::after rimosso per usare struttura DOM interna più ricca */
+    .hole-spot.bought::after {
+      display: none;
+    }
+
+    /* NUOVO STILE TOMBA DETTAGLIATA */
+    .tombstone {
+        width: 100%;
+        height: 100%;
+        background-color: #b0bec5; /* Grigio pietra */
+        border: 2px solid #546e7a; /* Bordo scuro pixel */
+        border-radius: 20px 20px 2px 2px; /* Forma ad arco */
+        position: relative;
+        box-shadow: 
+            4px 4px 0 rgba(0,0,0,0.3),  /* Ombra esterna */
+            inset 2px 2px 0 #cfd8dc,    /* Luce bordo */
+            inset -2px -2px 0 #90a4ae;  /* Ombra interna */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 5px;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    /* Croce decorativa incisa */
+    .tomb-cross {
+        width: 4px;
+        height: 12px;
+        background: #78909c;
+        position: relative;
+        margin-bottom: 4px;
+        box-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+        flex-shrink: 0;
+    }
+    .tomb-cross::before {
+        content: "";
+        position: absolute;
+        top: 3px; left: -3px;
+        width: 10px; height: 4px;
+        background: #78909c;
+        box-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+    }
+
+    /* Contenitore info testo */
+    .tomb-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 90%;
+        text-align: center;
+        flex-grow: 1;
+    }
+
+    .t-name {
+        font-size: 7px;
+        font-weight: bold;
+        color: #263238;
+        line-height: 1;
+        margin-bottom: 2px;
+        word-wrap: break-word;
+        max-width: 100%;
+        text-transform: uppercase;
+    }
+
+    .t-date {
+        font-size: 5px;
+        color: #455a64;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        font-family: sans-serif;
+        font-weight: bold;
+    }
+
+    .t-epitaph {
+        font-size: 5px;
+        color: #37474f;
+        font-style: italic;
+        line-height: 1.1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3; /* Standard property */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    /* Prezzo */
+    .price-tag {
+      position: absolute;
+      top: -20px;
+      background: #fbc02d;
+      color: #000;
+      padding: 2px 6px;
+      font-size: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      border: 1px solid #fff;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hole-spot.bought .price-tag { display: none; }
+    
+    /* MODAL */
+    .modal-overlay {
+      display: none; 
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-content {
+      background: #eceff1;
+      padding: 20px;
+      border-radius: 8px;
+      border: 4px solid #37474f;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px #000;
+      text-align: center;
+      font-family: inherit;
+    }
+    .modal-content input, .modal-content textarea {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 2px solid #b0bec5;
+        border-radius: 4px;
+        font-family: inherit;
+    }
+    .modal-btn {
+        background: #558b2f;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px; 
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 #33691e;
+        width: 100%;
+    }
+    .modal-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #33691e; }
+
+    /* Modal per Acquisto */
+    #buy-modal {
+      display: none; 
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+    #buy-modal .modal-content {
+      background: #eceff1;
+      padding: 20px;
+      border-radius: 8px;
+      border: 4px solid #37474f;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px #000;
+      text-align: center;
+      font-family: inherit;
+    }
+    #buy-modal input, #buy-modal textarea {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 2px solid #b0bec5;
+        border-radius: 4px;
+        font-family: inherit;
+    }
+    #buy-modal .modal-btn {
+        background: #558b2f;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px; 
+        font-weight: bold;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 3px 0 #33691e;
+        width: 100%;
+    }
+    #buy-modal .modal-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #33691e; }
+
+    /* Modal per Visualizzazione Dettagli (Nuovo) */
+    #view-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85); /* Leggermente più scuro */
+      z-index: 1000; /* Sopra tutto */
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    #view-modal .modal-content {
+      background: #eceff1;
+      padding: 20px;
+      border-radius: 8px;
+      border: 4px solid #37474f;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px #000;
+      text-align: center;
+      font-family: inherit;
+      position: relative;
+    }
+    #view-photo-container {
+      width: 100%;
+      height: 200px;
+      background: #cfd8dc;
+      border: 2px solid #b0bec5;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+    #view-photo {
+      max-width: 100%;
+      max-height: 100%;
+      display: none; /* Nascosto se vuoto */
+      object-fit: cover; /* Assicura che la foto copra bene lo spazio senza distorcere */
+    }
+    .view-close-btn {
+      background: #c62828;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #8e0000;
+      margin-top: 10px;
+    }
+    .view-close-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #8e0000; }
+
+    /* Modal per Login/Registrazione */
+    #login-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url('pc.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 2000;
+      display: none; /* NASCOSTO DI DEFAULT */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #eceff1;
+      font-family: 'Courier New', monospace;
+      box-sizing: border-box;
+    }
+    @media (max-width: 768px) {
+      #login-overlay {
+        background-image: url('mobile .webp');
+      }
+    }
+    .login-box {
+      background: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      text-align: center;
+      box-shadow: none;
+      max-width: 90%;
+      width: 340px;
+    }
+    .login-input {
+      width: 100%;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      background: rgba(60, 120, 220, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(100, 160, 255, 0.3);
+      border-radius: 14px;
+      color: white;
+      font-family: inherit;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .login-input::placeholder { color: rgba(255,255,255,0.55); }
+    .login-input:focus {
+      border-color: rgba(100, 180, 255, 0.7);
+      background: rgba(60, 120, 220, 0.35);
+    }
+    .login-btn {
+      background: rgba(60, 120, 220, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      width: 100%;
+      padding: 13px;
+      border: 1.5px solid rgba(100, 160, 255, 0.3);
+      border-radius: 14px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .login-btn:hover {
+      background: rgba(60, 120, 220, 0.45);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+    .login-btn:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
+    
+    .auth-bar {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 100;
+      display: flex;
+      gap: 10px;
+    }
+
+    .auth-btn {
+      background: #37474f;
+      color: #fff;
+      border: 2px solid #546e7a;
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.5);
+      font-weight: bold;
+    }
+    .auth-btn:hover { background: #455a64; }
+    .auth-btn:active { transform: translateY(2px); box-shadow: none; }
+    
+    /* Per nascondere il pulsante logout quando non loggato e viceversa */
+    .hidden { display: none !important; }
+
+    /* --------------------------------------
+      PIETRE DECORATIVE
+   -------------------------------------- */
+   .stone-decor {
+     position: absolute;
+     z-index: 3; /* Sotto i buchi ma sopra il terreno */
+     pointer-events: none;
+     filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.3));
+   }
+   
+   .stone-decor img {
+     width: 100%;
+     height: auto;
+     display: block;
+     image-rendering: pixelated;
+   }
+
+   /* --------------------------------------
+      ALBERI/DECORAZIONI (Nuovi)
+   -------------------------------------- */
+   .tree-decor {
+     position: absolute;
+     z-index: 6; /* Sopra le tombe e pietre per effetto profondità, ma non bloccare click se pointer-events: none */
+     pointer-events: none;
+     filter: drop-shadow(4px 4px 0 rgba(0,0,0,0.3));
+   }
+   .tree-decor img {
+     width: 100%;
+     height: auto;
+     display: block;
+     image-rendering: pixelated;
+   }
+
+    /* --------------------------------------
+       SPLASH SCREEN (Prima schermata)
+    -------------------------------------- */
+    #splash-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding-top: 8vh;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #splash-lottie-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .splash-content {
+      display: none;
+    }
+    .splash-top {
+      position: absolute;
+      top: 3vh;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 600px;
+      width: 92%;
+      text-align: center;
+    }
+    .splash-bottom {
+      position: absolute;
+      bottom: 3vh;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 540px;
+      width: 92%;
+      text-align: center;
+    }
+    .splash-center {
+      position: absolute;
+      top: 58%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      z-index: 1;
+    }
+    #splash-rect-anim {
+      width: clamp(220px, 50vw, 400px);
+      height: auto;
+      margin-bottom: 25px;
+    }
+    .splash-text {
+      color: #2c3e50;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: clamp(15px, 3.5vw, 20px);
+      line-height: 1.75;
+      margin-bottom: 15px;
+      letter-spacing: 0.3px;
+    }
+    .splash-text strong {
+      color: #5359e0;
+      font-weight: 700;
+    }
+    .splash-text-bottom {
+      color: #4a5568;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: clamp(12px, 2.8vw, 15px);
+      line-height: 1.65;
+      margin-bottom: 8px;
+      letter-spacing: 0.2px;
+    }
+    .splash-text-bottom.small {
+      font-size: clamp(11px, 2.4vw, 13px);
+      color: #7f8c8d;
+      font-style: italic;
+      margin-top: 5px;
+    }
+    .splash-enter-btn {
+      background: rgba(83, 89, 224, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #3a3f9e;
+      font-weight: bold;
+      font-size: clamp(15px, 3.5vw, 18px);
+      letter-spacing: 1.5px;
+      padding: 14px 50px;
+      border: 1.5px solid rgba(83, 89, 224, 0.3);
+      border-radius: 16px;
+      cursor: pointer;
+      transition: background 0.25s, transform 0.1s, box-shadow 0.25s;
+      box-shadow: 0 4px 20px rgba(83, 89, 224, 0.15);
+    }
+    .splash-enter-btn:hover {
+      background: rgba(83, 89, 224, 0.35);
+      box-shadow: 0 6px 25px rgba(83, 89, 224, 0.25);
+    }
+    .splash-enter-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 10px rgba(83, 89, 224, 0.15);
+    }
+
+    /* MOBILE */
+    @media (max-height: 700px) {
+      .splash-top { top: 2vh; }
+      .splash-text { font-size: clamp(12px, 3vw, 15px); line-height: 1.55; margin-bottom: 8px; }
+      .splash-center { top: 55%; }
+      .splash-enter-btn { padding: 11px 40px; font-size: 14px; }
+      .splash-bottom { bottom: 2vh; }
+      .splash-text-bottom { font-size: clamp(10px, 2.4vw, 12px); line-height: 1.5; margin-bottom: 4px; }
+      .splash-text-bottom.small { font-size: clamp(9px, 2vw, 11px); }
+    }
+    @media (max-width: 400px) {
+      .splash-top { top: 2vh; }
+      .splash-text { font-size: 13px; line-height: 1.5; }
+      .splash-center { top: 53%; }
+      .splash-enter-btn { padding: 10px 35px; font-size: 13px; }
+      .splash-text-bottom { font-size: 10px; }
+      .splash-text-bottom.small { font-size: 9px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="auth-bar">
+      <button id="show-login-btn" class="auth-btn" onclick="showLogin()">LOGIN / REGISTRATI</button>
+      <button id="logout-btn" class="auth-btn hidden" onclick="logout()">LOGOUT</button>
+  </div>
+
+  <!-- UI MONETE - RIMOSSO SU RICHIESTA -->
+  <!-- <div class="ui-layer"> -->
+    <!-- MONETE: <span id="coin-count">100</span> -->
+  <!-- </div> -->
+
+  <div class="scene">
+    <!-- ELEMENTI DECORATIVI (Alberi e Fiori) RIMOSSI SU RICHIESTA -->
+    
+    <!-- IL TEMPIO CENTRALE (Sostituito con Immagine) -->
+    <div class="temple-area">
+      <!-- Immagine fornita dall'utente -->
+      <img src="tem.webp" alt="Mausoleo Centrale" class="temple-image">
+
+      <!-- Insegna POPULATION -->
+      <div class="population-sign">
+        <span>PETHERNITY</span>
+        <div id="pop-count">0</div>
+      </div>
+    </div>
+
+    <!-- BUCHI ACQUISTABILI (2 SU, 2 GIÙ, 3 SX, 3 DX) -->
+    
+    <!-- GRUPPO SU (2) -->
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 12%; left: 25%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 12%; right: 35%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+
+    <!-- GRUPPO GIÙ (2) -->
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="bottom: 12%; left: 25%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="bottom: 12%; right: 35%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+
+    <!-- GRUPPO SINISTRA (3) -->
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 25%; left: 4%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 50%; left: 2%; transform: translateY(-50%);" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 75%; left: 4%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+
+    <!-- GRUPPO DESTRA (3) - Spostati per mobile -->
+    <!-- Distanziati verticalmente per liberare il centro -->
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 25%; right: 4%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <!-- Quello centrale a destra spostato al limite del dirupo -->
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 50%; right: 2%; transform: translateY(-50%);" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+    <div class="hole-spot" onclick="handleHoleClick(this)" style="top: 75%; right: 4%;" data-price="15">
+      <div class="price-tag">15€</div>
+    </div>
+
+    <!-- PIETRE DECORATIVE (5 posizioni randomizzate per estetica) -->
+    
+    <!-- Pietra 1: in alto a sinistra, tra i buchi -->
+    <!-- Spostata più verso il centro per distanziarla dall'albero nell'angolo -->
+    <div class="stone-decor" style="top: 12%; left: 14%; width: clamp(20px, 6vw, 40px);">
+        <img src="pietre_nobg.webp" alt="Pietra">
+    </div>
+
+    <!-- Pietra 2: in basso a sinistra - SPOSTATA PIÙ A DESTRA PER EVITARE ALBERO -->
+    <div class="stone-decor" style="bottom: 12%; left: 20%; width: clamp(15px, 5vw, 35px);">
+        <img src="pietre_nobg.webp" alt="Pietra" style="transform: scaleX(-1);"> <!-- Specchiata -->
+    </div>
+
+    <!-- Pietra 3: vicino al dirupo in alto -->
+    <div class="stone-decor" style="top: 15%; right: 18%; width: clamp(18px, 5vw, 30px);">
+        <img src="pietre_nobg.webp" alt="Pietra">
+    </div>
+
+    <!-- Pietra 4: zona centrale bassa, vicino al tempio -->
+    <div class="stone-decor" style="bottom: 25%; left: 40%; width: clamp(12px, 4vw, 25px);">
+        <img src="pietre_nobg.webp" alt="Pietra">
+    </div>
+
+    <!-- Pietra 5: zona centrale alta, a destra del tempio -->
+    <div class="stone-decor" style="top: 35%; right: 35%; width: clamp(20px, 6vw, 38px);">
+        <img src="pietre_nobg.webp" alt="Pietra" style="transform: scaleX(-1);">
+    </div>
+
+    <!-- ALBERI DECORATIVI (5 posizioni randomizzate, non intrusive) -->
+    
+    <!-- Albero 1: Angolo in alto a sinistra estremo -->
+    <div class="tree-decor" style="top: 2%; left: 2%; width: clamp(40px, 12vw, 80px);">
+        <img src="albe_nobg.webp" alt="Albero">
+    </div>
+
+    <!-- Albero 2: Angolo in basso a sinistra estremo -->
+    <div class="tree-decor" style="bottom: 2%; left: 2%; width: clamp(50px, 15vw, 90px);">
+        <img src="albe_nobg.webp" alt="Albero">
+    </div>
+
+    <!-- Albero 3: Dietro il tempio (centrale alto) -->
+    <div class="tree-decor" style="top: 5%; left: 50%; transform: translateX(-50%); width: clamp(30px, 10vw, 60px); z-index: 1;">
+         <!-- z-index basso per stare dietro al tempio -->
+        <img src="albe_nobg.webp" alt="Albero">
+    </div>
+
+    <!-- Albero 4: Lato destro in basso, vicino al dirupo -->
+    <div class="tree-decor" style="bottom: 5%; right: 25%; width: clamp(35px, 11vw, 70px);">
+        <img src="albe_nobg.webp" alt="Albero" style="transform: scaleX(-1);">
+    </div>
+
+    <!-- Albero 5: Lato destro alto, tra i buchi e il dirupo -->
+    <div class="tree-decor" style="top: 5%; right: 22%; width: clamp(25px, 8vw, 50px);">
+        <img src="albe_nobg.webp" alt="Albero" style="transform: scaleX(-1);">
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL FORM - VERSIONE UNIFICATA -->
+<div class="modal-overlay" id="grave-modal">
+  <div class="modal-content">
+    <h3 style="margin-top:0; color:#37474f;">NUOVA TOMBA</h3>
+    <input type="text" id="grave-name" placeholder="Nome defunto" maxlength="15">
+    <input type="text" id="grave-date" placeholder="Data (es. 1900-1990)" maxlength="20">
+    <textarea id="grave-text" rows="3" placeholder="Epitaffio (Breve messaggio)" maxlength="40"></textarea>
+    
+    <!-- Input Foto -->
+    <div style="margin-bottom: 10px; text-align: left;">
+      <label style="font-size: 12px; font-weight: bold; color: #37474f; margin-bottom: 4px; display: block;">Foto (Opzionale):</label>
+      <input type="file" id="grave-photo-input" accept="image/*" style="font-size: 12px; padding: 4px;">
+    </div>
+
+    <button class="modal-btn" onclick="confirmPurchase()">SEPPELLISCI – Procedi al Pagamento</button>
+    <button onclick="closeModal()" style="width:100%; margin-top:10px; background:none; border:none; text-decoration:underline; cursor:pointer; color:#5cf;">Annulla</button>
+  </div>
+</div>
+
+<!-- NUOVO MODAL PER VISUALIZZARE LA TOMBA CHIUSA -->
+<div id="view-modal">
+  <div class="modal-content">
+    <h3 id="view-name" style="margin-top:0; color:#263238; text-transform: uppercase;">NOME</h3>
+    
+    <div id="view-photo-container">
+      <img id="view-photo" src="" alt="Foto Ricordo">
+      <span id="view-no-photo-text" style="color: #90a4ae; font-size: 12px;">Nessuna foto</span>
+    </div>
+    
+    <p id="view-date" style="font-weight: bold; color: #455a64; margin: 5px 0;">1900-2000</p>
+    <p id="view-epitaph" style="font-style: italic; color: #37474f; font-size: 14px; margin: 10px 0;">"Qui riposa in pace..."</p>
+    
+    <button class="view-close-btn" onclick="closeViewModal()">CHIUDI</button>
+  </div>
+</div>
+
+<!-- SPLASH SCREEN - Prima schermata -->
+<div id="splash-screen">
+  <!-- Sfondo Lottie nuvole -->
+  <div id="splash-lottie-bg"></div>
+
+  <!-- PARTE ALTA: testo principale -->
+  <div class="splash-top">
+    <p class="splash-text">
+      Il vuoto che lascia il tuo amico a 4 zampe non è un addio.<br>
+      È un amore che cambia forma, ma non intensità.<br>
+      <strong>Peternity</strong> è il luogo dove quell'amore trova la sua eternità.
+    </p>
+  </div>
+
+  <!-- CENTRO: tasto ENTRA sotto la scritta PETHERNITY -->
+  <div class="splash-center">
+    <button class="splash-enter-btn" onclick="enterSite()">ENTRA</button>
+  </div>
+
+  <!-- PARTE BASSA: testo secondario -->
+  <div class="splash-bottom">
+    <p class="splash-text-bottom">
+      Stai entrando in un progetto nato dal cuore. Uno spazio digitale, sereno e personale, per onorare per sempre la memoria del tuo animale. Un luogo per raccogliere i ricordi più cari, dove sentirvi ancora vicini.
+    </p>
+    <p class="splash-text-bottom small">
+      Siamo all'inizio di questo viaggio. Il sito si evolverà nelle prossime settimane per rendere questa esperienza sempre più significativa.
+    </p>
+  </div>
+</div>
+
+<!-- LOGIN OVERLAY CON FIREBASE -->
+<div id="login-overlay">
+
+  <!-- Aggiungiamo pulsante chiusura -->
+  <button style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15); border-radius:50%; width:40px; height:40px; color:white; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onclick="hideLogin()">×</button>
+  <div class="login-box">
+    <h2 style="margin: 0 0 20px 0; font-size: clamp(22px, 5vw, 30px); font-weight: 700; color: #fff; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Accedi o Registrati</h2>
+    <input type="email" id="email" class="login-input" placeholder="Mail">
+    <input type="password" id="password" class="login-input" placeholder="Password (min 6 caratteri)">
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="login-btn" id="btn-login">ENTRA</button>
+        <button class="login-btn" id="btn-register">REGISTRATI</button>
+    </div>
+    <p id="auth-msg" style="color: #ffd600; font-size: 12px; margin-top: 10px; min-height: 15px;"></p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  // UPDATED TO STABLE VERSION 10.8.1
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyC5p224UMGY3q225-P44Fpp4npzEHPIpBE",
+    authDomain: "pixelmeadow-9cf1a.firebaseapp.com",
+    projectId: "pixelmeadow-9cf1a",
+    storageBucket: "pixelmeadow-9cf1a.firebasestorage.app",
+    messagingSenderId: "447283321975",
+    appId: "1:447283321975:web:d57be095f123dc72a33a72",
+    measurementId: "G-MB9F30YCX9"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // Inizializza Lottie Background per Login
+  document.addEventListener('DOMContentLoaded', () => {
+      // --- SPLASH SCREEN Lottie ---
+      const splashBg = document.getElementById('splash-lottie-bg');
+      if (splashBg && window.lottie) {
+          lottie.loadAnimation({
+              container: splashBg,
+              renderer: 'svg',
+              loop: true,
+              autoplay: true,
+              path: 'sfondo nuvole.json',
+              rendererSettings: {
+                  preserveAspectRatio: 'xMidYMid slice'
+              }
+          });
+      }
+  });
+
+  // Funzione ENTRA dalla Splash
+  window.enterSite = function() {
+      const splash = document.getElementById('splash-screen');
+      splash.style.opacity = '0';
+      splash.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => { splash.style.display = 'none'; }, 500);
+  }
+
+  // START LOADING WORLD IMMEDIATELY (Before Auth) - RIMOSSO SU RICHIESTA
+  /* 
+  const worldRefGlobal = doc(db, "world", "cemetery_main");
+  onSnapshot(worldRefGlobal, (doc) => {
+      // ... 
+  });
+  */
+
+  // ABILITA PERSISTENZA OFFLINE (CACHE) - RIMOSSO SU RICHIESTA
+  // enableIndexedDbPersistence(db)...
+
+  // DEBUGGING TOOL - Initialize immediately
+  function logError(msg, err) {
+      console.error(msg, err);
+      const errBox = document.getElementById('debug-error-box');
+      if (!errBox) {
+          const div = document.createElement('div');
+          div.id = 'debug-error-box';
+          div.style.position = 'fixed';
+          div.style.top = '10px';
+          div.style.right = '10px';
+          div.style.background = 'rgba(180, 0, 0, 0.9)'; // Dark red
+          div.style.color = 'white';
+          div.style.padding = '10px';
+          div.style.zIndex = '9999';
+          div.style.fontSize = '12px';
+          div.style.maxWidth = '300px';
+          div.style.fontFamily = 'monospace';
+          document.body.appendChild(div);
+          div.innerText = "DEBUG LOG:\n" + msg + (err ? " " + (err.message || err.code || err) : "");
+      } else {
+          errBox.innerText += "\n" + msg + (err ? " " + (err.message || err.code || err) : "");
+      }
+  }
+
+  logError("Firebase Scripts Caricati. App inizializzata.", "");
+
+  // STATO GLOBALE
+  let currentUser = null;
+  let coins = 100;
+  let population = 0;
+  let selectedHole = null; 
+  
+  // Listener Unsubscribers (per pulire quando si fa logout)
+  let unsubscribeUser = null;
+  let unsubscribeWorld = null;
+
+  // DOM REFERENCES
+  const loginOverlay = document.getElementById('login-overlay');
+  const authMsg = document.getElementById('auth-msg');
+  
+  const coinDisplay = document.getElementById('coin-count'); 
+  const popDisplay = document.getElementById('pop-count');
+  
+  const modal = document.getElementById('grave-modal');
+  // const modalPriceSpan rimosso — il prezzo è ora gestito da Stripe
+  
+  const inpName = document.getElementById('grave-name');
+  const inpDate = document.getElementById('grave-date');
+  const inpText = document.getElementById('grave-text');
+  const inpPhoto = document.getElementById('grave-photo-input');
+
+  const viewModal = document.getElementById('view-modal');
+  const viewPhoto = document.getElementById('view-photo');
+  const viewNoPhotoText = document.getElementById('view-no-photo-text');
+
+  // ASSEGNA ID AI BUCHI
+  const allHoles = document.querySelectorAll('.hole-spot');
+  allHoles.forEach((hole, index) => {
+      hole.dataset.id = index;
+  });
+
+  // -------------- AUTHENTICATION LOGIC --------------
+
+  // Listen for auth state changes
+  onAuthStateChanged(auth, (user) => {
+    // Carica SEMPRE i dati del mondo subito, indipendentemente dall'auth
+    // Questo è ridondante se initGameListeners è chiamato sotto, ma assicura
+    // che il caricamento inizi il prima possibile.
+  
+    if (user) {
+      // User is signed in
+      currentUser = user;
+      
+      // UI Update
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('show-login-btn').classList.add('hidden');
+      document.getElementById('logout-btn').classList.remove('hidden');
+
+      console.log("Utente loggato:", user.email);
+      initGameListeners();
+      
+      // Controlla se l'utente torna da Stripe con pagamento completato
+      handleStripeReturn();
+    } else {
+      // User is signed out
+      currentUser = null;
+
+      // UI Update
+      document.getElementById('login-overlay').style.display = 'none'; // Non forziamo login all'avvio
+      document.getElementById('show-login-btn').classList.remove('hidden');
+      document.getElementById('logout-btn').classList.add('hidden');
+
+      console.log("Nessun utente");
+      // Ferma i listener se attivi
+      if (unsubscribeUser) unsubscribeUser();
+      // NOTA: NON fermiamo unsubscribeWorld, perchè anche i non-loggati devono vedere il cimitero!
+      // Quindi initGameListeners lo adattiamo per funzionare parzialmente senza utente
+      initGameListeners(); 
+    }
+  });
+
+  // Funzioni UI Login
+  window.showLogin = function() {
+      document.getElementById('login-overlay').style.display = 'flex';
+  }
+  
+  window.hideLogin = function() {
+      document.getElementById('login-overlay').style.display = 'none';
+  }
+
+  // Helper: traduce errori Firebase in italiano
+  function translateFirebaseError(code) {
+    const errors = {
+      'auth/invalid-credential': 'Email o password errati. Riprova.',
+      'auth/invalid-email': 'Formato email non valido.',
+      'auth/user-not-found': 'Nessun account con questa email.',
+      'auth/wrong-password': 'Password errata.',
+      'auth/email-already-in-use': 'Questa email è già registrata. Prova ad accedere.',
+      'auth/weak-password': 'Password troppo debole (minimo 6 caratteri).',
+      'auth/too-many-requests': 'Troppi tentativi. Riprova tra qualche minuto.',
+      'auth/network-request-failed': 'Errore di rete. Controlla la connessione.',
+      'auth/missing-password': 'Inserisci la password.',
+      'auth/missing-email': 'Inserisci la mail.',
+    };
+    return errors[code] || 'Errore: ' + code;
+  }
+
+  // Login Button
+  document.getElementById('btn-login').addEventListener('click', () => {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('password').value;
+    authMsg.innerText = "Accesso in corso...";
+    
+    signInWithEmailAndPassword(auth, e, p)
+      .catch((error) => {
+        authMsg.innerText = translateFirebaseError(error.code);
+      });
+  });
+
+  // Register Button
+  document.getElementById('btn-register').addEventListener('click', () => {
+    const e = document.getElementById('email').value;
+    const p = document.getElementById('password').value;
+    authMsg.innerText = "Registrazione in corso...";
+
+    createUserWithEmailAndPassword(auth, e, p)
+      .catch((error) => {
+        authMsg.innerText = translateFirebaseError(error.code);
+      });
+  });
+
+  // Logout - Esportiamo in window per poterlo chiamare dal pulsante HTML
+  window.logout = function() {
+    if(confirm("Vuoi disconnetterti?")) {
+        signOut(auth).then(() => {
+            location.reload(); // Pulisce scena
+        });
+    }
+  }
+
+  // -------------- DATABASE LOGIC (FIRESTORE) --------------
+
+  async function initGameListeners() {
+      // 1. GESTIONE UTENTE (Solo se loggato)
+      if (currentUser) {
+          const userRef = doc(db, "users", currentUser.uid);
+          
+          try {
+            // Controllo esistenza utente o creazione default
+            const userSnap = await getDoc(userRef);
+            if (!userSnap.exists()) {
+                // ADMIN CHEAT: Matteo Infinite Coins
+                let startCoins = 100;
+                if (currentUser.email === "matteo.bonni@gmail.com") {
+                    startCoins = 999999;
+                }
+                await setDoc(userRef, { coins: startCoins });
+            } else {
+                // Se esiste, controlla se è matteo e aggiorna se necessario 
+                // (potremmo anche farlo sempre, ma facciamolo qui per sicurezza)
+                if (currentUser.email === "matteo.bonni@gmail.com") {
+                    await setDoc(userRef, { coins: 999999 }, { merge: true });
+                }
+            }
+
+            // Ascolta cambiamenti monete utente
+            unsubscribeUser = onSnapshot(userRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    coins = data.coins !== undefined ? data.coins : 100;
+                    if (coinDisplay) coinDisplay.innerText = coins;
+                }
+            }, (error) => {
+                console.error("Errore ascolto utente:", error);
+            });
+          } catch (e) {
+            logError("Errore init user:", e);
+          }
+      }
+
+      // 2. GESTIONE MONDO (Tombe condivise e Popolazione) - PER TUTTI (ANCHE OSPITI)
+      // Se c'è già un listener attivo world, non ne creiamo un altro identico
+      if (unsubscribeWorld) return; 
+      
+      const worldRef = doc(db, "world", "cemetery_main");
+      
+      try {
+        logError("Tentativo connessione DB mondo...", "");
+        // Controllo esistenza mondo o creazione default
+        // Usiamo setDoc con merge per essere sicuri di creare se non esiste senza sovrascrivere se esiste
+        await setDoc(worldRef, { initialized: true }, { merge: true });
+        logError("Connessione DB mondo OK.", "");
+
+        // RIPRISTINATO IL LISTENER QUI
+        unsubscribeWorld = onSnapshot(worldRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                
+                // Aggiorna popolazione
+                population = data.population || 0;
+                if (popDisplay) popDisplay.innerText = population;
+                
+                // Aggiorna tutte le tombe
+                if (data.graves) {
+                    Object.keys(data.graves).forEach(holeId => {
+                        const graveInfo = data.graves[holeId];
+                        const holeEl = document.querySelector(`.hole-spot[data-id="${holeId}"]`);
+                        
+                        // Aggiorna solo se la tomba non è già visualizzata o è cambiata
+                        if (holeEl && graveInfo) {
+                            restoreGrave(holeEl, graveInfo);
+                        }
+                    });
+                }
+            }
+        }, (error) => {
+             logError("Errore ascolto mondo:", error);
+        });
+        
+      } catch (e) {
+          logError("Errore init mondo:", e);
+      }
+  }
+
+  // -------------- STRIPE POST-PAYMENT HANDLING --------------
+
+  async function handleStripeReturn() {
+      // Controlla se c'è un acquisto pendente in localStorage
+      const pendingRaw = localStorage.getItem('pendingGrave');
+      if (!pendingRaw) return; // Nessun acquisto pendente
+
+      // Se c'è un acquisto pendente, prova a finalizzarlo
+      // (L'utente torna da Stripe — il pagamento è andato a buon fine)
+      console.log("Trovato acquisto pendente, finalizzazione in corso...");
+      
+      try {
+          const pending = JSON.parse(pendingRaw);
+          const { targetHoleId, graveData } = pending;
+
+          if (!targetHoleId || !graveData) {
+              console.error("Dati pendenti incompleti, pulizia...");
+              localStorage.removeItem('pendingGrave');
+              return;
+          }
+
+          // Verifica che l'utente corrente sia lo stesso che ha avviato l'acquisto
+          if (graveData.ownerId !== currentUser.uid) {
+              console.warn("L'utente corrente non corrisponde all'acquisto pendente.");
+              localStorage.removeItem('pendingGrave');
+              return;
+          }
+
+          // Verifica che la buca non sia già stata acquistata (evita duplicati)
+          const worldRef = doc(db, "world", "cemetery_main");
+          const worldSnap = await getDoc(worldRef);
+          if (worldSnap.exists()) {
+              const worldData = worldSnap.data();
+              if (worldData.graves && worldData.graves[targetHoleId]) {
+                  console.log("La buca è già occupata, acquisto già completato o buca presa.");
+                  localStorage.removeItem('pendingGrave');
+                  // Mostra messaggio se la tomba è di un altro utente
+                  if (worldData.graves[targetHoleId].ownerId !== currentUser.uid) {
+                      alert("Questa buca è stata acquistata da un altro utente. Il tuo pagamento potrebbe necessitare un rimborso.");
+                  }
+                  return;
+              }
+          }
+
+          // Aggiorna il timestamp al momento della finalizzazione
+          graveData.timestamp = Date.now();
+
+          // Esegui la transazione di creazione tomba
+          await buyGraveTransaction(graveData, 0, targetHoleId); // price=0 perché già pagato su Stripe
+
+          // Rimuovi i dati pendenti
+          localStorage.removeItem('pendingGrave');
+          console.log("Acquisto finalizzato con successo dopo pagamento Stripe!");
+
+          // Pulisci l'URL dai parametri Stripe (estetica)
+          if (window.history.replaceState) {
+              const cleanUrl = window.location.origin + window.location.pathname;
+              window.history.replaceState({}, document.title, cleanUrl);
+          }
+
+      } catch (e) {
+          console.error("Errore finalizzazione acquisto post-Stripe:", e);
+          logError("Errore finalizzazione tomba dopo pagamento:", e);
+          alert("Si è verificato un errore nel creare la tomba dopo il pagamento. I tuoi dati sono stati salvati, riprova ricaricando la pagina. Se il problema persiste, contattaci.");
+          // NON rimuoviamo i dati pendenti così l'utente può riprovare al prossimo caricamento
+      }
+  }
+
+  async function buyGraveTransaction(graveData, price, targetHoleId) {
+      if (!currentUser) return;
+      if (!targetHoleId) {
+          logError("Errore interno: ID buca mancante", "");
+          return;
+      }
+      
+      const userRef = doc(db, "users", currentUser.uid);
+      const worldRef = doc(db, "world", "cemetery_main");
+
+      try {
+          // 1. Aggiorna monete utente (solo se price > 0, cioè non è un pagamento Stripe già completato)
+          if (price > 0) {
+              // MATTEO CHEAT: Se è Matteo, non scala monete (o ne ha infinite)
+              let newCoins = coins - price;
+              if (currentUser.email === "matteo.bonni@gmail.com") {
+                  newCoins = 999999; 
+              }
+
+              // Usiamo setDoc con merge invece di updateDoc per sicurezza
+              await setDoc(userRef, {
+                  coins: newCoins
+              }, { merge: true });
+          }
+
+          // 2. Aggiorna Cimitero Globale
+          // USARE setDoc con MERGE è più sicuro se il documento world non esistesse ancora
+          
+          // Costruiamo l'oggetto nested per il merge
+          await setDoc(worldRef, {
+              graves: {
+                  [targetHoleId]: graveData
+              },
+              population: increment(1)
+          }, { merge: true });
+          
+          console.log("Acquisto registrato su Firebase");
+          logError("Acquisto salvato con successo!", "");
+
+      } catch (e) {
+          logError("Errore acquisto:", e);
+          // Messaggio più specifico
+          if (e.code === 'permission-denied') {
+              alert("ERRORE: Permesso negato! Controlla le regole di Firestore (Console -> Firestore -> Rules).");
+          } else {
+              alert("Errore durante l'acquisto: " + e.message);
+          }
+          throw e; 
+      }
+  }
+
+  // -------------- OPERAZIONI INTERFACCIA --------------
+
+  window.handleHoleClick = function(element) {
+      if (!currentUser) {
+          alert("Effettua il LOGIN per acquistare o visualizzare tombe!");
+          return;
+      }
+      
+      // Se già acquistata, mostra dettagli
+      if (element.classList.contains('bought')) {
+          openViewModal(element);
+          return;
+      }
+
+      // Se non acquistata, apri modale acquisto
+      selectedHole = element;
+      // Pulisci campi
+      inpName.value = "";
+      inpDate.value = "";
+      inpText.value = "";
+      inpPhoto.value = "";
+      modal.style.display = 'flex';
+  }
+
+  window.closeModal = function() {
+      modal.style.display = 'none';
+      selectedHole = null;
+  }
+
+  window.confirmPurchase = async function() {
+      if (!selectedHole) return;
+
+      // SALVIAMO L'ID PRIMA DI CHIUDERE LA MODALE
+      const targetId = selectedHole.dataset.id;
+
+      const name = inpName.value.trim() || "Sconosciuto";
+      const date = inpDate.value.trim() || "????-????";
+      const epitaph = inpText.value.trim() || "R.I.P.";
+      
+      // Gestione Foto
+      let photoData = null;
+      if (inpPhoto.files && inpPhoto.files[0]) {
+          try {
+              photoData = await readFileAsDataURL(inpPhoto.files[0]);
+          } catch (e) {
+              console.error("Errore lettura foto:", e);
+              alert("Errore nel caricamento della foto.");
+              return;
+          }
+      }
+
+      // Dati tomba da salvare temporaneamente
+      const pendingGrave = {
+          targetHoleId: targetId,
+          graveData: {
+              ownerId: currentUser.uid,
+              ownerEmail: currentUser.email,
+              name: name,
+              date: date,
+              epitaph: epitaph,
+              photo: photoData,
+              placeholder: false,
+              timestamp: Date.now()
+          }
+      };
+
+      try {
+          // Salva i dati in localStorage per recuperarli dopo il pagamento
+          localStorage.setItem('pendingGrave', JSON.stringify(pendingGrave));
+          console.log("Dati tomba salvati in localStorage, redirect a Stripe...");
+          
+          // Chiudi modale
+          closeModal();
+
+          // Redirect a Stripe Payment Link
+          window.location.href = "https://buy.stripe.com/4gMcN52yndwc3JFak8aVa04";
+      } catch (e) {
+          console.error("Errore preparazione pagamento:", e);
+          alert("Errore durante la preparazione del pagamento. Riprova.");
+      }
+  }
+
+  // Helper Lettura File
+  function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(file);
+      });
+  }
+
+  // Renderizza la tomba
+  function restoreGrave(element, info) {
+    if (!element.classList.contains('bought')) {
+        element.classList.add('bought');
+        
+        // Rimuovi prezzo
+        const pt = element.querySelector('.price-tag');
+        if(pt) pt.style.display = 'none';
+        
+        element.innerHTML = ''; // Pulisci cerchio verde
+
+        // Crea grafica tomba
+        const tomb = document.createElement('div');
+        tomb.className = 'tombstone';
+        
+        const cross = document.createElement('div');
+        cross.className = 'tomb-cross';
+        tomb.appendChild(cross);
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'tomb-info';
+        
+        const n = document.createElement('div');
+        n.className = 't-name';
+        n.innerText = info.name;
+        
+        const d = document.createElement('div');
+        d.className = 't-date';
+        d.innerText = info.date;
+        
+        const ep = document.createElement('div');
+        ep.className = 't-epitaph';
+        ep.innerText = info.epitaph;
+        
+        infoDiv.appendChild(n);
+        infoDiv.appendChild(d);
+        infoDiv.appendChild(ep);
+        
+        tomb.appendChild(infoDiv);
+        element.appendChild(tomb);
+    }
+    // Salva dati per visualizzazione
+    element.__graveData = info;
+  }
+
+  // Modale Visualizzazione
+  function openViewModal(element) {
+      const data = element.__graveData;
+      if (!data) return;
+
+      document.getElementById('view-name').innerText = data.name;
+      document.getElementById('view-date').innerText = data.date;
+      document.getElementById('view-epitaph').innerText = `"${data.epitaph}"`;
+      
+      if (data.photo) {
+          viewPhoto.src = data.photo;
+          viewPhoto.style.display = 'block';
+          viewNoPhotoText.style.display = 'none';
+      } else {
+          viewPhoto.style.display = 'none';
+          viewNoPhotoText.style.display = 'block';
+      }
+      viewModal.style.display = 'flex';
+  }
+
+  window.closeViewModal = function() {
+      viewModal.style.display = 'none';
+  }
+
+  // -------------- RESET CIMITERO (TEMPORANEO) --------------
+  window.resetCemetery = async function() {
+      if (!confirm("⚠️ ATTENZIONE: Questo cancellerà TUTTE le tombe! Sei sicura?")) return;
+      try {
+          const worldRef = doc(db, "world", "cemetery_main");
+          await setDoc(worldRef, {
+              initialized: true,
+              graves: {},
+              population: 0
+          });
+          console.log("Cimitero resettato!");
+          alert("✅ Cimitero azzerato! Ricarico la pagina...");
+          location.reload();
+      } catch (e) {
+          console.error("Errore reset:", e);
+          alert("Errore durante il reset: " + e.message);
+      }
+  }
+
+</script>
+</body>
+</html>
