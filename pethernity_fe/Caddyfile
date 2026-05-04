@@ -1,0 +1,25 @@
+:{$PORT:8080} {
+	root * /srv
+	encode gzip zstd
+
+	# SPA fallback: per qualunque path che non corrisponde a un file, servi index.html
+	try_files {path} /index.html
+	file_server
+
+	# Cache aggressiva sui chunk con hash, no-cache su index.html (rinnova al deploy)
+	@hashed path_regexp ^/assets/.+-[A-Za-z0-9_]{8,}\.[A-Za-z0-9]+$
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	header /index.html Cache-Control "no-cache"
+
+	# Header di sicurezza minimi
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
