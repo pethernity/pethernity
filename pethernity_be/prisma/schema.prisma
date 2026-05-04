@@ -8,11 +8,13 @@ datasource db {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  email        String      @unique
-  passwordHash String
-  createdAt    DateTime    @default(now())
+  id           String             @id @default(cuid())
+  email        String             @unique
+  passwordHash String?
+  firebaseUid  String?            @unique
+  createdAt    DateTime           @default(now())
   headstones   Headstone[]
+  pendings     PendingHeadstone[]
 }
 
 model Pet {
@@ -40,4 +42,16 @@ model Headstone {
   pet   Pet    @relation(fields: [petId], references: [id], onDelete: Cascade)
 
   @@unique([x, y])
+}
+
+model PendingHeadstone {
+  id              String    @id @default(cuid())
+  stripeSessionId String?   @unique
+  ownerId         String
+  owner           User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  payload         Json
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  headstoneId     String?   @unique
 }

@@ -1,19 +1,66 @@
-import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
-import { buildApp } from '../src/app.js';
-import { prisma } from '../src/prisma.js';
+
+vi.mock('firebase-admin/app', () => ({
+  initializeApp: vi.fn(() => ({})),
+  getApps: () => [],
+  cert: vi.fn(() => ({})),
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: () => ({
+    verifyIdToken: async (token: string) => {
+      if (!token.startsWith('fb:')) throw new Error('Not a firebase token');
+      const [, uid, email] = token.split(':');
+      return { uid, email };
+    },
+  }),
+}));
+
+const stripeSessionsCreate = vi.fn(async (params: any) => ({
+  id: 'cs_test_' + Math.random().toString(36).slice(2),
+  url: 'https://checkout.stripe.com/c/pay/fake',
+  client_reference_id: params.client_reference_id,
+}));
+
+vi.mock('stripe', () => {
+  class MockStripe {
+    checkout = { sessions: { create: stripeSessionsCreate } };
+    webhooks = {
+      constructEvent: (rawBody: any, sig: string, secret: string) => {
+        if (sig !== 'valid-sig' || secret !== 'whsec_test') {
+          throw new Error('Invalid signature');
+        }
+        return JSON.parse(rawBody.toString());
+      },
+    };
+  }
+  return { default: MockStripe };
+});
+
+process.env.FIREBASE_PROJECT_ID = 'test-project';
+process.env.FIREBASE_CLIENT_EMAIL = 'test@firebase.test';
+process.env.FIREBASE_PRIVATE_KEY = 'test-key';
+process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
+process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+process.env.STRIPE_PRICE_ID = 'price_test';
+
+const { buildApp } = await import('../src/app.js');
+const { prisma } = await import('../src/prisma.js');
 
 let app: Awaited<ReturnType<typeof buildApp>>;
 
 beforeAll(async () => {
   app = await buildApp();
-  await app.ready();
+  await app.listen({ port: 0, host: '127.0.0.1' });
 });
 
 beforeEach(async () => {
+  await prisma.pendingHeadstone.deleteMany();
   await prisma.headstone.deleteMany();
   await prisma.pet.deleteMany();
   await prisma.user.deleteMany();
+  stripeSessionsCreate.mockClear();
 });
 
 afterAll(async () => {
@@ -78,5 +125,200 @@ describe('integration', () => {
       .delete(`/headstones/${created.body.id}`)
       .set('Cookie', cookie)
       .expect(204);
+  });
+
+  it('POST /auth/session upserts user from Firebase ID token', async () => {
+    const idToken = 'fb:firebase-uid-1:firebase@test.com';
+
+    const sessionRes = await request(app.server)
+      .post('/auth/session')
+      .set('Authorization', `Bearer ${idToken}`)
+      .expect(200);
+
+    expect(sessionRes.body.email).toBe('firebase@test.com');
+
+    const dbUser = await prisma.user.findUnique({ where: { firebaseUid: 'firebase-uid-1' } });
+    expect(dbUser).not.toBeNull();
+    expect(dbUser?.email).toBe('firebase@test.com');
+  });
+
+  it('POST /auth/session rejects missing/invalid Bearer token', async () => {
+    await request(app.server).post('/auth/session').expect(401);
+    await request(app.server)
+      .post('/auth/session')
+      .set('Authorization', 'Bearer not-a-firebase-token')
+      .expect(401);
+  });
+
+  it('Firebase Bearer token authorizes /headstones POST', async () => {
+    const idToken = 'fb:firebase-uid-2:owner2@test.com';
+    const created = await request(app.server)
+      .post('/headstones')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 30, y: 40, pet: { name: 'Rex' } })
+      .expect(201);
+
+    expect(created.body.owner.email).toBe('owner2@test.com');
+  });
+
+  it('POST /payments/checkout creates a pending headstone and returns the Stripe URL', async () => {
+    const idToken = 'fb:firebase-uid-pay:payer@test.com';
+
+    const res = await request(app.server)
+      .post('/payments/checkout')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 50, y: 60, epitaph: 'Goodbye', pet: { name: 'Kitty' } })
+      .expect(200);
+
+    expect(res.body.checkoutUrl).toContain('checkout.stripe.com');
+    expect(res.body.pendingId).toBeTruthy();
+    expect(stripeSessionsCreate).toHaveBeenCalledOnce();
+
+    const pending = await prisma.pendingHeadstone.findUnique({ where: { id: res.body.pendingId } });
+    expect(pending?.status).toBe('pending');
+    expect(pending?.stripeSessionId).toMatch(/^cs_test_/);
+
+    // No real headstone yet
+    const headstones = await prisma.headstone.count();
+    expect(headstones).toBe(0);
+  });
+
+  it('POST /payments/checkout rejects coordinates already occupied', async () => {
+    const idToken = 'fb:firebase-uid-collide:collider@test.com';
+    await request(app.server)
+      .post('/headstones')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 70, y: 80, pet: { name: 'First' } })
+      .expect(201);
+
+    await request(app.server)
+      .post('/payments/checkout')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 70, y: 80, pet: { name: 'Second' } })
+      .expect(409);
+  });
+
+  it('POST /webhooks/stripe with valid signature creates the headstone', async () => {
+    const idToken = 'fb:firebase-uid-wh:wh@test.com';
+
+    const checkoutRes = await request(app.server)
+      .post('/payments/checkout')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 100, y: 110, epitaph: 'RIP', pet: { name: 'Buddy' } })
+      .expect(200);
+
+    const pendingId = checkoutRes.body.pendingId;
+    const sessionId = (await prisma.pendingHeadstone.findUnique({ where: { id: pendingId } }))?.stripeSessionId;
+
+    const event = {
+      id: 'evt_test',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: sessionId,
+          client_reference_id: pendingId,
+        },
+      },
+    };
+
+    await request(app.server)
+      .post('/webhooks/stripe')
+      .set('stripe-signature', 'valid-sig')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify(event))
+      .expect(200);
+
+    const headstones = await prisma.headstone.findMany({ include: { pet: true } });
+    expect(headstones).toHaveLength(1);
+    expect(headstones[0].x).toBe(100);
+    expect(headstones[0].pet.name).toBe('Buddy');
+
+    const pending = await prisma.pendingHeadstone.findUnique({ where: { id: pendingId } });
+    expect(pending?.status).toBe('completed');
+    expect(pending?.headstoneId).toBe(headstones[0].id);
+  });
+
+  it('POST /webhooks/stripe rejects invalid signature', async () => {
+    const event = { id: 'evt_x', type: 'checkout.session.completed', data: { object: {} } };
+    await request(app.server)
+      .post('/webhooks/stripe')
+      .set('stripe-signature', 'wrong-sig')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify(event))
+      .expect(400);
+  });
+
+  it('GET /headstones/stream pushes SSE events on create', async () => {
+    const idToken = 'fb:firebase-uid-sse:sse@test.com';
+    const address = app.server.address();
+    if (!address || typeof address === 'string') throw new Error('Server not listening');
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+
+    const controller = new AbortController();
+    const streamPromise = fetch(`${baseUrl}/headstones/stream`, { signal: controller.signal });
+    const stream = await streamPromise;
+    const reader = stream.body!.getReader();
+    const decoder = new TextDecoder();
+
+    const readUntil = async (matcher: (chunk: string) => boolean, timeoutMs = 3000) => {
+      let buffer = '';
+      const start = Date.now();
+      while (Date.now() - start < timeoutMs) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value);
+        if (matcher(buffer)) return buffer;
+      }
+      throw new Error(`Timeout waiting for SSE chunk. Got: ${buffer}`);
+    };
+
+    await readUntil((b) => b.includes('event: hello'));
+
+    const created = request(app.server)
+      .post('/headstones')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 300, y: 310, pet: { name: 'Streamer' } });
+    await created.expect(201);
+
+    const buf = await readUntil((b) => b.includes('event: headstone.created'));
+    expect(buf).toContain('"name":"Streamer"');
+
+    controller.abort();
+    try {
+      await reader.cancel();
+    } catch {}
+  });
+
+  it('POST /webhooks/stripe is idempotent on retries', async () => {
+    const idToken = 'fb:firebase-uid-idem:idem@test.com';
+    const checkoutRes = await request(app.server)
+      .post('/payments/checkout')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 200, y: 210, pet: { name: 'Solo' } })
+      .expect(200);
+
+    const pendingId = checkoutRes.body.pendingId;
+    const event = {
+      id: 'evt_idem',
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_test_idem', client_reference_id: pendingId } },
+    };
+
+    await request(app.server)
+      .post('/webhooks/stripe')
+      .set('stripe-signature', 'valid-sig')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify(event))
+      .expect(200);
+
+    await request(app.server)
+      .post('/webhooks/stripe')
+      .set('stripe-signature', 'valid-sig')
+      .set('content-type', 'application/json')
+      .send(JSON.stringify(event))
+      .expect(200);
+
+    const count = await prisma.headstone.count();
+    expect(count).toBe(1);
   });
 });
