@@ -59,6 +59,41 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
+// Helper: simula il flusso paid completo (checkout + webhook firmato).
+// È l'unico modo per far nascere una Headstone, dato che il POST diretto
+// è stato rimosso intenzionalmente per impedire la creazione gratuita.
+async function payAndCreate(opts: {
+  idToken?: string;
+  cookie?: string | string[];
+  body: { x: number; y: number; epitaph?: string; pet: any };
+}) {
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  let req = request(app.server).post('/payments/checkout').send(opts.body);
+  if (opts.idToken) req = req.set('Authorization', `Bearer ${opts.idToken}`);
+  if (opts.cookie) req = req.set('Cookie', opts.cookie);
+  const checkoutRes = await req.expect(200);
+  const pendingId = checkoutRes.body.pendingId as string;
+
+  const event = {
+    id: 'evt_helper_' + pendingId,
+    type: 'checkout.session.completed',
+    data: { object: { id: 'cs_test_' + pendingId, client_reference_id: pendingId } },
+  };
+  await request(app.server)
+    .post('/webhooks/stripe')
+    .set('stripe-signature', 'valid-sig')
+    .set('content-type', 'application/json')
+    .send(JSON.stringify(event))
+    .expect(200);
+
+  const pending = await prisma.pendingHeadstone.findUnique({ where: { id: pendingId } });
+  if (!pending?.headstoneId) throw new Error('Webhook did not create the headstone');
+  return prisma.headstone.findUniqueOrThrow({
+    where: { id: pending.headstoneId },
+    include: { pet: true, owner: { select: { id: true, email: true } } },
+  });
+}
+
 describe('integration', () => {
   it('register + login + auth/me via cookie', async () => {
     await request(app.server)
@@ -82,7 +117,7 @@ describe('integration', () => {
     expect(meRes.body.email).toBe('user@test.com');
   });
 
-  it('create + update + delete headstone with pet', async () => {
+  it('paid create + update + delete headstone with pet', async () => {
     await request(app.server)
       .post('/auth/register')
       .send({ email: 'owner@test.com', password: '123456' })
@@ -95,16 +130,14 @@ describe('integration', () => {
 
     const cookie = loginRes.headers['set-cookie'];
 
-    const created = await request(app.server)
-      .post('/headstones')
-      .set('Cookie', cookie)
-      .send({ x: 10, y: 20, epitaph: 'Best dog', pet: { name: 'Fido', species: 'dog' } })
-      .expect(201);
-
-    expect(created.body.pet.name).toBe('Fido');
+    const created = await payAndCreate({
+      cookie,
+      body: { x: 10, y: 20, epitaph: 'Best dog', pet: { name: 'Fido', species: 'dog' } },
+    });
+    expect(created.pet.name).toBe('Fido');
 
     const updated = await request(app.server)
-      .put(`/headstones/${created.body.id}`)
+      .put(`/headstones/${created.id}`)
       .set('Cookie', cookie)
       .send({ epitaph: 'Forever loved', pet: { name: 'Fido II' } })
       .expect(200);
@@ -113,9 +146,21 @@ describe('integration', () => {
     expect(updated.body.pet.name).toBe('Fido II');
 
     await request(app.server)
-      .delete(`/headstones/${created.body.id}`)
+      .delete(`/headstones/${created.id}`)
       .set('Cookie', cookie)
       .expect(204);
+  });
+
+  it('POST /headstones is intentionally NOT exposed (creation only via paid webhook)', async () => {
+    const idToken = 'fb:firebase-uid-bypass:bypass@test.com';
+    // Direct creation must be unreachable: no public POST handler.
+    await request(app.server)
+      .post('/headstones')
+      .set('Authorization', `Bearer ${idToken}`)
+      .send({ x: 999, y: 999, pet: { name: 'Freebie' } })
+      .expect(404);
+
+    expect(await prisma.headstone.count()).toBe(0);
   });
 
   it('POST /auth/session upserts user from Firebase ID token', async () => {
@@ -141,15 +186,13 @@ describe('integration', () => {
       .expect(401);
   });
 
-  it('Firebase Bearer token authorizes /headstones POST', async () => {
+  it('Firebase Bearer token authorizes /payments/checkout (paid creation path)', async () => {
     const idToken = 'fb:firebase-uid-2:owner2@test.com';
-    const created = await request(app.server)
-      .post('/headstones')
-      .set('Authorization', `Bearer ${idToken}`)
-      .send({ x: 30, y: 40, pet: { name: 'Rex' } })
-      .expect(201);
-
-    expect(created.body.owner.email).toBe('owner2@test.com');
+    const created = await payAndCreate({
+      idToken,
+      body: { x: 30, y: 40, pet: { name: 'Rex' } },
+    });
+    expect(created.owner?.email).toBe('owner2@test.com');
   });
 
   it('POST /payments/checkout creates a pending headstone and returns the Payment Link URL', async () => {
@@ -176,11 +219,10 @@ describe('integration', () => {
 
   it('POST /payments/checkout rejects coordinates already occupied', async () => {
     const idToken = 'fb:firebase-uid-collide:collider@test.com';
-    await request(app.server)
-      .post('/headstones')
-      .set('Authorization', `Bearer ${idToken}`)
-      .send({ x: 70, y: 80, pet: { name: 'First' } })
-      .expect(201);
+    await payAndCreate({
+      idToken,
+      body: { x: 70, y: 80, pet: { name: 'First' } },
+    });
 
     await request(app.server)
       .post('/payments/checkout')
@@ -264,11 +306,9 @@ describe('integration', () => {
 
     await readUntil((b) => b.includes('event: hello'));
 
-    const created = request(app.server)
-      .post('/headstones')
-      .set('Authorization', `Bearer ${idToken}`)
-      .send({ x: 300, y: 310, pet: { name: 'Streamer' } });
-    await created.expect(201);
+    // L'evento 'headstone.created' viene emesso dal webhook quando il
+    // PendingHeadstone diventa una Headstone reale.
+    await payAndCreate({ idToken, body: { x: 300, y: 310, pet: { name: 'Streamer' } } });
 
     const buf = await readUntil((b) => b.includes('event: headstone.created'));
     expect(buf).toContain('"name":"Streamer"');

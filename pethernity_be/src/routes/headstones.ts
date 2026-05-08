@@ -5,18 +5,6 @@ import { errorSchema, headstoneSchema } from '../schemas/common.js';
 import { emitHeadstoneEvent, headstoneEvents, HeadstoneEvent } from '../lib/events.js';
 import { env } from '../env.js';
 
-const createSchema = z.object({
-  x: z.number().int(),
-  y: z.number().int(),
-  epitaph: z.string().max(500).optional(),
-  pet: z.object({
-    name: z.string().min(1),
-    species: z.string().optional(),
-    imageGzipBase64: z.string().max(2_000_000).optional(),
-    imageMime: z.string().max(100).optional(),
-  }),
-});
-
 const updateSchema = z.object({
   x: z.number().int().optional(),
   y: z.number().int().optional(),
@@ -30,26 +18,6 @@ const updateSchema = z.object({
     })
     .optional(),
 });
-
-const createBodyJsonSchema = {
-  type: 'object',
-  required: ['x', 'y', 'pet'],
-  properties: {
-    x: { type: 'integer' },
-    y: { type: 'integer' },
-    epitaph: { type: 'string' },
-    pet: {
-      type: 'object',
-      required: ['name'],
-      properties: {
-        name: { type: 'string' },
-        species: { type: 'string' },
-        imageGzipBase64: { type: 'string' },
-        imageMime: { type: 'string' },
-      },
-    },
-  },
-} as const;
 
 const updateBodyJsonSchema = {
   type: 'object',
@@ -99,60 +67,9 @@ export async function headstoneRoutes(app: FastifyInstance) {
     }
   );
 
-  app.post(
-    '/headstones',
-    {
-      preHandler: [app.authenticate],
-      schema: {
-        tags: ['headstones'],
-        security: [{ cookieAuth: [] }, { bearerAuth: [] }],
-        body: createBodyJsonSchema,
-        response: {
-          201: headstoneSchema,
-          400: errorSchema,
-          401: errorSchema,
-          409: errorSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      const parsed = createSchema.safeParse(request.body);
-      if (!parsed.success) return reply.code(400).send({ message: 'Invalid payload' });
-
-      const userId = (request.user as { sub: string }).sub;
-      const { x, y, epitaph, pet } = parsed.data;
-
-      const ownedCount = await prisma.headstone.count({ where: { ownerId: userId } });
-      if (ownedCount >= 10) return reply.code(409).send({ message: 'Maximum 10 headstones per user' });
-
-      try {
-        const result = await prisma.headstone.create({
-          data: {
-            x,
-            y,
-            epitaph,
-            owner: { connect: { id: userId } },
-            pet: {
-              create: {
-                name: pet.name,
-                species: pet.species,
-                imageGzipBase64: pet.imageGzipBase64,
-                imageMime: pet.imageMime,
-              },
-            },
-          },
-          include: { pet: true, owner: { select: { id: true, email: true } } },
-        });
-        emitHeadstoneEvent({ type: 'headstone.created', payload: result });
-        return reply.code(201).send(result);
-      } catch (error: any) {
-        if (error?.code === 'P2002') {
-          return reply.code(409).send({ message: 'Coordinates already occupied' });
-        }
-        throw error;
-      }
-    }
-  );
+  // NOTE: la creazione di una Headstone è intenzionalmente esposta SOLO via
+  // il webhook firmato di Stripe (POST /webhooks/stripe → checkout.session.completed).
+  // Non c'è un POST /headstones pubblico: bypassherebbe il pagamento.
 
   app.put(
     '/headstones/:id',
