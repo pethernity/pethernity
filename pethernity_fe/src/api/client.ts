@@ -1,8 +1,7 @@
 import createClient, { Middleware } from 'openapi-fetch';
 import type { paths } from './schema';
+import { apiBaseUrl } from './config';
 import { getCurrentIdToken } from '../auth/firebase';
-
-const baseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:3030').replace(/\/$/, '');
 
 const bearerMiddleware: Middleware = {
   async onRequest({ request }) {
@@ -14,10 +13,10 @@ const bearerMiddleware: Middleware = {
   },
 };
 
-export const api = createClient<paths>({ baseUrl });
+export const api = createClient<paths>({ baseUrl: apiBaseUrl });
 api.use(bearerMiddleware);
 
-export const apiBaseUrl = baseUrl;
+export { apiBaseUrl };
 
 export type HeadstoneDTO = NonNullable<
   paths['/headstones']['get']['responses']['200']['content']['application/json']

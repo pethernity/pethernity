@@ -13,6 +13,7 @@ import { authRoutes } from './routes/auth.js';
 import { headstoneRoutes } from './routes/headstones.js';
 import { paymentRoutes } from './routes/payments.js';
 import { webhookRoutes } from './routes/webhooks.js';
+import { configRoutes } from './routes/config.js';
 
 export async function buildApp() {
   const app = Fastify({ logger: env.nodeEnv !== 'test' });
@@ -69,6 +70,7 @@ export async function buildApp() {
 
   await app.register(firebasePlugin);
   await app.register(authPlugin);
+  await app.register(configRoutes);
   await app.register(authRoutes);
   await app.register(headstoneRoutes);
   await app.register(paymentRoutes);

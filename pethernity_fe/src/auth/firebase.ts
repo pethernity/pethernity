@@ -8,36 +8,41 @@ import {
   type Auth,
   type User,
 } from 'firebase/auth';
+import { fetchPublicConfig } from '../api/config';
 
 let cachedAuth: Auth | null = null;
+let initPromise: Promise<Auth> | null = null;
 let currentUser: User | null = null;
 const listeners = new Set<(user: User | null) => void>();
 
-export function getFirebaseAuth(): Auth {
-  if (cachedAuth) return cachedAuth;
+// Inizializza Firebase Web fetchando la config dal backend (GET /config).
+// Idempotente: chiamate concorrenti condividono la stessa Promise.
+export function initAuth(): Promise<Auth> {
+  if (cachedAuth) return Promise.resolve(cachedAuth);
+  if (initPromise) return initPromise;
 
-  const config = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? 'AIzaSyC5p224UMGY3q225-P44Fpp4npzEHPIpBE',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? 'pixelmeadow-9cf1a.firebaseapp.com',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? 'pixelmeadow-9cf1a',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID ?? '1:447283321975:web:d57be095f123dc72a33a72',
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? '447283321975',
-  };
+  initPromise = (async () => {
+    const { firebase: cfg } = await fetchPublicConfig();
+    const app: FirebaseApp = getApps()[0] ?? initializeApp(cfg);
+    cachedAuth = getAuth(app);
 
-  const app: FirebaseApp = getApps()[0] ?? initializeApp(config);
-  cachedAuth = getAuth(app);
+    onAuthStateChanged(cachedAuth, (user) => {
+      currentUser = user;
+      listeners.forEach((cb) => cb(user));
+    });
 
-  onAuthStateChanged(cachedAuth, (user) => {
-    currentUser = user;
-    listeners.forEach((cb) => cb(user));
-  });
+    return cachedAuth;
+  })();
 
-  return cachedAuth;
+  return initPromise;
 }
 
+// Token corrente (null se Firebase non ancora inizializzato o utente non loggato).
+// L'init parte all'avvio dell'app (vedi main.ts), quindi in pratica è raro
+// che ritorni null per non-aver-inizializzato; è la situazione "utente anonimo".
 export async function getCurrentIdToken(): Promise<string | null> {
-  const auth = getFirebaseAuth();
-  const user = auth.currentUser;
+  if (!cachedAuth) return null;
+  const user = cachedAuth.currentUser;
   if (!user) return null;
   return user.getIdToken();
 }
@@ -53,12 +58,12 @@ export function onUserChange(cb: (user: User | null) => void): () => void {
 }
 
 export async function signInWithGoogle(): Promise<User> {
-  const auth = getFirebaseAuth();
+  const auth = await initAuth();
   const result = await signInWithPopup(auth, new GoogleAuthProvider());
   return result.user;
 }
 
 export async function signOutCurrentUser(): Promise<void> {
-  const auth = getFirebaseAuth();
-  await signOut(auth);
+  if (!cachedAuth) return;
+  await signOut(cachedAuth);
 }

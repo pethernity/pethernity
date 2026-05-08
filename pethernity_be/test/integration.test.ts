@@ -17,15 +17,8 @@ vi.mock('firebase-admin/auth', () => ({
   }),
 }));
 
-const stripeSessionsCreate = vi.fn(async (params: any) => ({
-  id: 'cs_test_' + Math.random().toString(36).slice(2),
-  url: 'https://checkout.stripe.com/c/pay/fake',
-  client_reference_id: params.client_reference_id,
-}));
-
 vi.mock('stripe', () => {
   class MockStripe {
-    checkout = { sessions: { create: stripeSessionsCreate } };
     webhooks = {
       constructEvent: (rawBody: any, sig: string, secret: string) => {
         if (sig !== 'valid-sig' || secret !== 'whsec_test') {
@@ -41,9 +34,8 @@ vi.mock('stripe', () => {
 process.env.FIREBASE_PROJECT_ID = 'test-project';
 process.env.FIREBASE_CLIENT_EMAIL = 'test@firebase.test';
 process.env.FIREBASE_PRIVATE_KEY = 'test-key';
-process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
+process.env.STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_4gMcN52yndwc3JFak8aVa04';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
-process.env.STRIPE_PRICE_ID = 'price_test';
 
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/prisma.js');
@@ -60,7 +52,6 @@ beforeEach(async () => {
   await prisma.headstone.deleteMany();
   await prisma.pet.deleteMany();
   await prisma.user.deleteMany();
-  stripeSessionsCreate.mockClear();
 });
 
 afterAll(async () => {
@@ -161,7 +152,7 @@ describe('integration', () => {
     expect(created.body.owner.email).toBe('owner2@test.com');
   });
 
-  it('POST /payments/checkout creates a pending headstone and returns the Stripe URL', async () => {
+  it('POST /payments/checkout creates a pending headstone and returns the Payment Link URL', async () => {
     const idToken = 'fb:firebase-uid-pay:payer@test.com';
 
     const res = await request(app.server)
@@ -170,15 +161,15 @@ describe('integration', () => {
       .send({ x: 50, y: 60, epitaph: 'Goodbye', pet: { name: 'Kitty' } })
       .expect(200);
 
-    expect(res.body.checkoutUrl).toContain('checkout.stripe.com');
+    expect(res.body.checkoutUrl).toContain('buy.stripe.com');
+    expect(res.body.checkoutUrl).toContain(`client_reference_id=${res.body.pendingId}`);
+    expect(res.body.checkoutUrl).toContain('prefilled_email=payer%40test.com');
     expect(res.body.pendingId).toBeTruthy();
-    expect(stripeSessionsCreate).toHaveBeenCalledOnce();
 
     const pending = await prisma.pendingHeadstone.findUnique({ where: { id: res.body.pendingId } });
     expect(pending?.status).toBe('pending');
-    expect(pending?.stripeSessionId).toMatch(/^cs_test_/);
 
-    // No real headstone yet
+    // No real headstone yet — appears only after Stripe webhook
     const headstones = await prisma.headstone.count();
     expect(headstones).toBe(0);
   });
@@ -208,14 +199,13 @@ describe('integration', () => {
       .expect(200);
 
     const pendingId = checkoutRes.body.pendingId;
-    const sessionId = (await prisma.pendingHeadstone.findUnique({ where: { id: pendingId } }))?.stripeSessionId;
 
     const event = {
       id: 'evt_test',
       type: 'checkout.session.completed',
       data: {
         object: {
-          id: sessionId,
+          id: 'cs_test_webhook',
           client_reference_id: pendingId,
         },
       },

@@ -6,7 +6,7 @@
 import { api, type HeadstoneDTO } from './api/client';
 import { openHeadstoneStream } from './realtime/headstoneStream';
 import {
-  getFirebaseAuth,
+  initAuth,
   getCurrentUser,
   onUserChange,
   signInWithGoogle,
@@ -15,8 +15,11 @@ import {
 
 declare const lucide: any;
 
-// Initialise Firebase Auth eagerly so onAuthStateChanged starts firing.
-getFirebaseAuth();
+// Inizializza Firebase Auth fetchando il config dal backend (GET /config).
+// Async: il bottone account si abilita non appena onAuthStateChanged emette.
+initAuth().catch((err) => {
+  console.error('Init Firebase Auth fallita:', err);
+});
 
 // Backend headstone -> shape that the legacy `restoreGrave(el, info)` expects.
 // `pet.species` is repurposed as the date label (e.g. "2018-2024") and

@@ -4,23 +4,11 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 
-# Le VITE_* vengono inlinete nel bundle al build time, quindi vanno passate
-# come build args (--build-arg) e non come runtime env.
-# Su Cloud Run "Continuously deploy from a repository", impostali in
-# "Build environment variables".
+# Unica build-arg: l'URL del backend (Vite la inlinea nel bundle).
+# Tutto il resto della configurazione (Firebase Web, ecc.) viene fetchato
+# a runtime dal backend via GET /config, quindi NON serve come build-arg.
 ARG VITE_API_URL=http://localhost:3030
-ARG VITE_FIREBASE_API_KEY=""
-ARG VITE_FIREBASE_AUTH_DOMAIN=""
-ARG VITE_FIREBASE_PROJECT_ID=""
-ARG VITE_FIREBASE_APP_ID=""
-ARG VITE_FIREBASE_MESSAGING_SENDER_ID=""
-
-ENV VITE_API_URL=${VITE_API_URL} \
-    VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY} \
-    VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN} \
-    VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID} \
-    VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID} \
-    VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}
+ENV VITE_API_URL=${VITE_API_URL}
 
 COPY package*.json ./
 RUN npm ci

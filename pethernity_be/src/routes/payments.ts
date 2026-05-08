@@ -2,7 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { prisma } from '../prisma.js';
 import { env } from '../env.js';
-import { getStripe } from '../lib/stripe.js';
 import { checkoutBodySchema, checkoutResponseSchema, errorSchema } from '../schemas/common.js';
 
 const checkoutSchema = z.object({
@@ -42,7 +41,7 @@ export async function paymentRoutes(app: FastifyInstance) {
       const userId = request.appUser?.id ?? (request.user as { sub: string }).sub;
       const userEmail = request.appUser?.email ?? (request.user as { email?: string }).email;
 
-      if (!env.stripe.secretKey || !env.stripe.priceId || !env.stripe.webhookSecret) {
+      if (!env.stripe.paymentLink) {
         return reply.code(500).send({ message: 'Stripe is not configured' });
       }
 
@@ -53,6 +52,8 @@ export async function paymentRoutes(app: FastifyInstance) {
       const ownedCount = await prisma.headstone.count({ where: { ownerId: userId } });
       if (ownedCount >= 10) return reply.code(409).send({ message: 'Maximum 10 headstones per user' });
 
+      // Persistiamo l'intent prima del redirect: il webhook ci troverà
+      // l'Headstone payload corretto via client_reference_id = pending.id.
       const pending = await prisma.pendingHeadstone.create({
         data: {
           ownerId: userId,
@@ -60,33 +61,11 @@ export async function paymentRoutes(app: FastifyInstance) {
         },
       });
 
-      try {
-        const session = await getStripe().checkout.sessions.create({
-          mode: 'payment',
-          line_items: [{ price: env.stripe.priceId, quantity: 1 }],
-          success_url: `${env.frontendOrigin}/?session_id={CHECKOUT_SESSION_ID}&status=success`,
-          cancel_url: `${env.frontendOrigin}/?status=canceled`,
-          client_reference_id: pending.id,
-          customer_email: userEmail,
-          metadata: { pendingId: pending.id, ownerId: userId },
-        });
+      const url = new URL(env.stripe.paymentLink);
+      url.searchParams.set('client_reference_id', pending.id);
+      if (userEmail) url.searchParams.set('prefilled_email', userEmail);
 
-        await prisma.pendingHeadstone.update({
-          where: { id: pending.id },
-          data: { stripeSessionId: session.id },
-        });
-
-        if (!session.url) {
-          return reply.code(500).send({ message: 'Stripe did not return a checkout URL' });
-        }
-        return reply.send({ pendingId: pending.id, checkoutUrl: session.url });
-      } catch (err) {
-        await prisma.pendingHeadstone.update({
-          where: { id: pending.id },
-          data: { status: 'failed' },
-        });
-        throw err;
-      }
+      return reply.send({ pendingId: pending.id, checkoutUrl: url.toString() });
     }
   );
 }

@@ -77,9 +77,9 @@ gcloud secrets create FIREBASE_CLIENT_EMAIL --data-file=- <<< 'firebase-adminsdk
 # La private key contiene newline reali: passala con --data-file (NON come stringa inline)
 gcloud secrets create FIREBASE_PRIVATE_KEY --data-file=./firebase-private-key.txt
 
-# Stripe
-gcloud secrets create STRIPE_SECRET_KEY --data-file=- <<< 'sk_live_...'
-gcloud secrets create STRIPE_PRICE_ID --data-file=- <<< 'price_...'
+# Stripe Payment Link (URL pubblico tipo https://buy.stripe.com/...) — non è un segreto
+# ma lo mettiamo qui per uniformità di gestione.
+gcloud secrets create STRIPE_PAYMENT_LINK --data-file=- <<< 'https://buy.stripe.com/...'
 # Lo STRIPE_WEBHOOK_SECRET lo conosci solo DOPO aver creato l'endpoint webhook in Stripe (step 6)
 ```
 
@@ -102,14 +102,17 @@ Console GCP → **Cloud Run** → **Create service** → "Continuously deploy fr
      - `NODE_ENV=production`
      - `COOKIE_NAME=petcem_auth`
      - `FRONTEND_ORIGIN=https://placeholder.run.app` ← lo sistemi DOPO aver deployato il FE
+     - `WEB_FIREBASE_API_KEY=AIzaSy...` (pubblici, non sono segreti)
+     - `WEB_FIREBASE_AUTH_DOMAIN=<tuo-progetto>.firebaseapp.com`
+     - `WEB_FIREBASE_APP_ID=1:...:web:...`
+     - `WEB_FIREBASE_MESSAGING_SENDER_ID=...`
    - **Secrets (referenced as env vars)**:
      - `DATABASE_URL` → secret `DATABASE_URL` (latest)
      - `JWT_SECRET` → secret `JWT_SECRET`
      - `FIREBASE_PROJECT_ID` → secret `FIREBASE_PROJECT_ID`
      - `FIREBASE_CLIENT_EMAIL` → secret `FIREBASE_CLIENT_EMAIL`
      - `FIREBASE_PRIVATE_KEY` → secret `FIREBASE_PRIVATE_KEY`
-     - `STRIPE_SECRET_KEY` → secret `STRIPE_SECRET_KEY`
-     - `STRIPE_PRICE_ID` → secret `STRIPE_PRICE_ID`
+     - `STRIPE_PAYMENT_LINK` → secret `STRIPE_PAYMENT_LINK`
      - `STRIPE_WEBHOOK_SECRET` → secret `STRIPE_WEBHOOK_SECRET` (lo crei vuoto ora, lo aggiorni allo step 6)
 10. **Connections** (tab):
     - **Cloud SQL connections**: aggiungi `pethernity-db`
@@ -137,7 +140,10 @@ URL risultante: `https://pethernity-be-XXXXX.europe-west1.run.app`
 
 ## 4) Frontend Cloud Run
 
-Le `VITE_*` sono inlinete nel bundle al **build time**, quindi vanno passate come "Build environment variables" (= `--build-arg` Docker), non come runtime env.
+Il frontend è "thin": l'unica config build-time è `VITE_API_URL`. Tutto il resto
+(Firebase Web SDK, ecc.) viene fetchato a runtime dal backend via `GET /config`.
+Quindi il container del FE è "build-once-deploy-anywhere": cambi di config
+richiedono un redeploy del **BE**, non del **FE**.
 
 Console GCP → **Cloud Run** → **Create service** → "Continuously deploy from a repository".
 
@@ -149,18 +155,15 @@ Console GCP → **Cloud Run** → **Create service** → "Continuously deploy fr
 6. **Region**: `europe-west1`
 7. **Authentication**: "Allow unauthenticated invocations"
 8. **Container port**: `8080`
-9. Nel pannello **Show advanced settings** → **Build environment variables** (sono i `--build-arg`):
-   - `VITE_API_URL=https://pethernity-be-XXXXX.europe-west1.run.app` ← URL del BE creato allo step 3
-   - `VITE_FIREBASE_API_KEY=AIzaSy...`
-   - `VITE_FIREBASE_AUTH_DOMAIN=pixelmeadow-9cf1a.firebaseapp.com`
-   - `VITE_FIREBASE_PROJECT_ID=pixelmeadow-9cf1a`
-   - `VITE_FIREBASE_APP_ID=1:447283321975:web:...`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID=447283321975`
+9. Nel pannello **Show advanced settings** → **Build environment variables**:
+   - `VITE_API_URL=https://pethernity-be-XXXXX.europe-west1.run.app`
 10. **Min instances**: `0`, **Max instances**: `4`
 
 Premi **Create**. URL risultante: `https://pethernity-fe-XXXXX.europe-west1.run.app`
 
-> **Importante**: cambiare `VITE_API_URL` richiede un **rebuild**, non basta un redeploy. Modifica la variabile e fai trigger di una nuova build (o un commit).
+> **Importante**: cambiare `VITE_API_URL` richiede un **rebuild** del FE
+> (è una build-arg di Docker). I valori Firebase Web invece **NON** richiedono
+> rebuild: stanno nel BE come `WEB_FIREBASE_*` e basta una nuova revision di Cloud Run BE.
 
 ---
 

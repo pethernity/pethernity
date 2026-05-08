@@ -23,9 +23,21 @@ const envSchema = z.object({
   FIREBASE_CLIENT_EMAIL: optionalEmail,
   FIREBASE_PRIVATE_KEY: optionalString,
 
-  STRIPE_SECRET_KEY: optionalString,
+  // Public Firebase Web SDK config — served to the frontend via GET /config.
+  // Pubblici per design (apiKey è ristretta per dominio in Firebase Console).
+  WEB_FIREBASE_API_KEY: optionalString,
+  WEB_FIREBASE_AUTH_DOMAIN: optionalString,
+  WEB_FIREBASE_APP_ID: optionalString,
+  WEB_FIREBASE_MESSAGING_SENDER_ID: optionalString,
+
+  // Payment Link Stripe (URL pubblico tipo https://buy.stripe.com/...).
+  // Era hardcoded nel frontend originale; ora vive solo qui.
+  STRIPE_PAYMENT_LINK: optionalString,
+  // Webhook signing secret (whsec_...): NUOVO requisito di sicurezza.
+  // Lo ottieni da `stripe listen` in locale o dal Webhook endpoint creato
+  // sul Dashboard Stripe in produzione. Senza questo il backend non accetta
+  // webhook (per evitare che un attaccante falsifichi pagamenti).
   STRIPE_WEBHOOK_SECRET: optionalString,
-  STRIPE_PRICE_ID: optionalString,
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -49,9 +61,15 @@ export const env = {
     clientEmail: raw.FIREBASE_CLIENT_EMAIL,
     privateKey: raw.FIREBASE_PRIVATE_KEY,
   },
+  webFirebase: {
+    apiKey: raw.WEB_FIREBASE_API_KEY,
+    authDomain: raw.WEB_FIREBASE_AUTH_DOMAIN,
+    projectId: raw.FIREBASE_PROJECT_ID, // condiviso con admin
+    appId: raw.WEB_FIREBASE_APP_ID,
+    messagingSenderId: raw.WEB_FIREBASE_MESSAGING_SENDER_ID,
+  },
   stripe: {
-    secretKey: raw.STRIPE_SECRET_KEY,
+    paymentLink: raw.STRIPE_PAYMENT_LINK,
     webhookSecret: raw.STRIPE_WEBHOOK_SECRET,
-    priceId: raw.STRIPE_PRICE_ID,
   },
 };

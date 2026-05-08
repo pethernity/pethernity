@@ -1,4 +1,4 @@
-import { apiBaseUrl } from '../api/client';
+import { apiBaseUrl } from '../api/config';
 import type { HeadstoneDTO } from '../api/client';
 
 export type HeadstoneStreamHandlers = {
